@@ -154,13 +154,13 @@ class ProductManager {
 // Proceso de testing
 const RUTA = "./file.json";
 let pm = new ProductManager(RUTA);
-console.log(pm.getProducts()) // debe mostrar array vacio ( o no mostrar nada)
+console.log(pm.getProducts()) // debe mostrar array vacio
 pm.addProduct("producto prueba", "Este es un producto prueba", 200, "Sin imagen", "abc123", 25);
 pm.addProduct("producto prueba 2", "Este es un producto prueba", 200, "Sin imagen", "123abc", 35);
 pm.addProduct("producto prueba 2", "Este es un producto prueba", 200, "Sin imagen", "123abc", 35);
 // Debe mostrarse un mensaje de error diciendo que el ultimo producto ya esta repetido
 console.log(pm.getProducts()) // deben mostrarse los productos recien agregados
 pm.updateProduct(0, {description: "Descripcion cambiada", id: 132});
-console.log(pm.getProducts()) // debe mostrarse el producto con la descripcion cambiada, el id no debe estar cambiado 
+console.log(pm.getProducts()) // debe mostrarse el producto con la descripcion modificada y el id sin modificar
 pm.deleteProduct(0);
-console.log(pm.getProducts()) // debe mostrar un array vacio ya que el producto esta eliminado
+console.log(pm.getProducts()) // debe mostrar un array con solo el producto de id 1 ya que el anterior fue eliminado.
