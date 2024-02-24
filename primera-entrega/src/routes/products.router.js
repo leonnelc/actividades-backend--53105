@@ -32,12 +32,8 @@ router.post("/", (req, res) => {
     }
 })
 
-router.delete("/", (req, res) => {
-    if (!Object.keys(req.body).includes("id")){
-        res.send({status:"error", message:"Invalid request, id must be in JSON format"});
-        return;
-    }
-    let result = pm.deleteProduct(req.body.id);
+router.delete("/:pid", (req, res) => {
+    let result = pm.deleteProduct(req.params.pid);
     if (result.errmsg === 0){
         res.send({status:"success", message: "Product deleted succesfully"});
     } else{
@@ -45,18 +41,8 @@ router.delete("/", (req, res) => {
     }
 })
 
-router.put("/", (req, res) => {
-    if (!Object.keys(req.body).includes("id")){
-        res.send({status:"error", message:"Invalid request, id and properties must be in JSON format"});
-        /* Example request: {
-            id: 0,
-            title: "New title"
-            description: "New description"
-        }
-        */
-        return;
-    }
-    let result = pm.updateProduct(req.body.id, req.body);
+router.put("/:pid", (req, res) => {
+    let result = pm.updateProduct(req.params.pid, req.body);
     if (result.errmsg === 0){
         res.send({status:"success", message: "Product succesfully updated"});
     } else{
