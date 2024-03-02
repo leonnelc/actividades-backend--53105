@@ -1,0 +1,16 @@
+
+<form action="javascript:addProduct()" id="addProduct">
+    <input type="text" name="title" id="formTitle" placeholder="title" required>
+    <input type="text" name="description" id="formDescription" placeholder="description" required>
+    <input type="number" name="price" id="formPrice" placeholder="price" step="any" required>
+    <input type="url" name="thumbnail" id="formThumbnails" placeholder="thumbnail">
+    <input type="text" name="code" id="formCode" placeholder="code" required>
+    <input type="number" name="stock" id="formStock" placeholder="stock" required>
+    <input type="text" name="category" id="formCategory" placeholder="category" required>
+    <label><input type="checkbox" name="status" id="formStatus" checked>status</label>
+    <input type="submit" value="Add product">
+</form>
+<div id="product-container"></div>
+
+<script src="https://cdn.socket.io/4.7.3/socket.io.min.js"></script>
+<script src="js/realtimeproducts.js"></script>
