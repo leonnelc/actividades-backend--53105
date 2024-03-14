@@ -1,36 +1,62 @@
 const ProductManager = require("./controllers/ProductManager");
+const ChatManager = require("./controllers/ChatManager");
 const pm = new ProductManager();
 module.exports = (httpServer) => {
     const io = require('socket.io')(httpServer); // Use received httpServer
 
-    io.on('connection', (socket) => {
+    io.on('connection', async (socket) => {
         console.log("User connected :)");
-        socket.emit("productList", pm.getProducts());
+        socket.emit("productList", await pm.getProducts());
         socket.on('disconnect', () => {
             // ...
             console.log("User disconnected :(");
         });
-        socket.on("getProductList", () => {
-            socket.emit("productList", pm.getProducts());
-        })
-        socket.on("deleteProduct", (pid) => {
-            pm.deleteProduct(pid);
-            io.emit("productList", pm.getProducts());
-        })
-        socket.on("addStock", (pid) => {
-            if (pm.increaseStock(pid, 1).errmsg == 0){
-                io.emit("productList", pm.getProducts());
+
+
+
+        // real time chat
+        let username;
+        socket.on("message", (message) => {
+            if (username == null){
+                socket.emit("error", "You need to log in before sending messages!")
+                return;
             }
-        })
-        socket.on('decStock', (pid) => {
-            if (pm.decreaseStock(pid, 1).errmsg == 0){
-                io.emit("productList", pm.getProducts());
+            message = ChatManager.processMessage(message);
+            if (!message){
+                return;
             }
+            ChatManager.addMessage(username, message);
+            io.emit("message", {username:username, message:message});
         })
-        socket.on("addProduct", (product) => {
-            let result = pm.addProduct(product);
+        socket.on("joinChat", (data) => {
+            if (username != null){
+                socket.emit("error", "Already logged in");
+                return;
+            }
+            if (!data.username || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.username)){
+                socket.emit("invalidLogin");
+                //socket.emit("error", "Invalid username");
+                return;
+            }
+            username = data.username;
+            socket.emit("validLogin");
+        })
+
+        // real time products
+        socket.on("getProductList", async () => {
+            socket.emit("productList", await pm.getProducts());
+        })
+        socket.on("deleteProduct", async (pid) => {
+            await pm.deleteProduct(pid);
+            io.emit("productList", await pm.getProducts());
+        })
+        socket.on("addProduct", async (product) => {
+            let result = await pm.addProduct(product);
             if (result.errmsg == 0){
-                io.emit("productList", pm.getProducts());
+                io.emit("productList", await pm.getProducts());
+            } else{
+                console.log(`Error adding product: ${result.errmsg}`);
+                socket.emit("error", `Error adding product: ${result.errmsg}`);
             }
         })
     });
