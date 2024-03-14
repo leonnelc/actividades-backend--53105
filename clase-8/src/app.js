@@ -1,5 +1,5 @@
 const express = require("express");
-
+const mongo = require("mongoose");
 
 const PORT = 8080;
 
@@ -22,16 +22,14 @@ app.use(express.static("./src/public"));
 app.use("/api/products", productsRouter);
 app.use("/api/carts", cartsRouter);
 app.use("/", viewsRouter);
-let times = 0;
 app.use((req, res, next) => {
     if (!res.locals.send || !res.locals.products){
         next();
         return;
     }
-    times++;
-    console.log(`Test middleware! ${req.method} ${times}`);
     res.send(res.locals.send);
     socketIO.emit("productList", res.locals.products);
+    console.log("Sending products to websockets: ");
     console.log(res.locals.products);
     return;
 
@@ -52,4 +50,17 @@ const httpServer = app.listen(PORT, () => {
 
 // socket.io logic
 const socketIO = require('./socket-io')(httpServer);
+
+// connect to database
+
+const productsModel = require("./models/products.model");
+let connected = false;
+console.log("Connecting to database...");
+mongo.connect("mongodb+srv://leonnelc:coderhouse@cluster0.euhg3so.mongodb.net/ecommerce?retryWrites=true&w=majority&appName=Cluster0"
+).then( async () => {
+    console.log("Success connecting to database");
+    connected = true;
+}).catch( (reason) => {
+    throw new Error(`Failure connecting to database, reason: \n${reason}`);
+})
 

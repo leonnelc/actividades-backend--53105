@@ -1,140 +1,134 @@
-const fs = require("fs");
+const cartsModel = require("../models/carts.model");
 class CartManager {
-    #cart_count
-    #carts
-    #filepath
-    constructor(filepath, ProductManager){
+    constructor(ProductManager){
         this.ProductManager = ProductManager;
-        this.#cart_count = 0;
-        this.#carts = [];
-        this.#filepath = filepath;
-        this.#initialize();
     }
-    #updateFile(){
+    async addCart(){
         try {
-            fs.writeFileSync(this.#filepath, JSON.stringify(this.#carts));
+            const cart = new cartsModel();
+            await cart.save();            
+            return cart._id;
         } catch (error) {
-            console.error(`Error writing '${this.#filepath}': ${error.message}`);
+            return null;     
         }
     }
-    #initialize(){
-        if (!fs.existsSync(this.#filepath)){
-            console.warn(`${this.#filepath} doesn't exist, it will be created.`);
-            this.#updateFile();
-        }
+    async deleteCart(id){
+        let cart;
         try {
-            let parsedData = JSON.parse(fs.readFileSync(this.#filepath,"utf-8"));
-            if (!Array.isArray(parsedData)){
-                let notArrayError = new Error(`Error: "${this.#filepath}" does not contain a JSON formatted array`);
-                notArrayError.name = "NotArrayError";
-                throw notArrayError;
-            }
-            this.#carts = [...parsedData];
-            if (parsedData.length > 0){
-                this.#cart_count = parsedData[parsedData.length-1].id+1;
-            } else{
-                this.#cart_count = 0;
-            }
-
+            cart = await cartsModel.findByIdAndDelete(id).lean();
         } catch (error) {
-            if (error.name == "SyntaxError"){
-                console.error("Invalid JSON File");
-            } else if (error.name == "NotArrayError"){
-                console.error(error.message);
-            }
-            throw error;
-        } 
-    }
-    addCart(){
-        // Adds a cart and returns its id
-        const cart = {
-            id:this.#cart_count,
-            products: []
-        }
-        this.#carts.push(cart)
-        this.#cart_count++;
-        this.#updateFile();
-        return this.#cart_count-1;
-    }
-    deleteCart(id){
-        let index = this.#carts.findIndex((cart) => {
-            if (!Object.keys(cart).includes("id")){
-                return false;
-            }
-            if (cart.id == id){
-                return true;
-            }
-        })
-        if (index == -1){
-            console.log(`Delete error: product id ${id} not found`);
-            return {errmsg:`product id ${id} not found`};
-        }
-        this.#carts.splice(index, 1);
-        this.#updateFile();
-        return {errmsg:0};
-
-    }
-    getCartById(id){
-        let index = this.#carts.findIndex((cart) => {
-            if (!Object.keys(cart).includes("id")){
-                return false;
-            }
-            if (cart.id == id){
-                return true;
-            }
-        })
-        if (index == -1){
-            console.log(`Error: cart id ${id} not found`);
             return null;
         }
-        return this.#carts[index];
+        return cart ? cart._id: null;
+
     }
-    getCarts(){
-        return [...this.#carts];
+    async getCartById(id){
+        try {
+            return {errmsg:0, cart:await cartsModel.findById(id).lean()};
+        } catch (error) {
+            if (error.name == "CastError"){
+                return {errmsg:"Invalid product id format specified"};
+            }
+            return {errmsg:error.message, cart:null};
+        }
     }
-    #getProductById(cart, pid){
-        return cart.products.find((value) => {
-            return (value.id == pid);
-        })
+    async getCarts(){
+        return await cartsModel.find().lean();
     }
-    addProduct(cartId, prodId, quantity){
+    async addProduct(cartId, prodId, quantity){
         quantity = parseInt(quantity);
-        
-        const cart = this.getCartById(cartId);
+        if (quantity <= 0){
+            return {errmsg:"Quantity must be a positive integer"};
+        }
+        let cart;
+        let product;
+        try {
+            cart = await cartsModel.findById(cartId);
+            console.log(`cart: ${cart}`);
+        } catch (error) {
+            if (error.name == "CastError"){
+                return {errmsg:"Invalid cart id format specified"};
+            }
+            return {errmsg:`Error finding cart id ${cartId}: ${error.message}`}
+        }
+        product = await this.ProductManager.getProductById(prodId);
+        //product = await productsModel.findById(prodId);
         if (cart == null){
             return {errmsg:`Cart id ${cartId} doesn't exist`};
         }
-
-        const product = this.ProductManager.getProductById(prodId);
         if (product == null){
             return {errmsg:`Product id ${prodId} doesn't exist`};
         }
-
-        const cartProduct = this.#getProductById(cart, prodId);
-        if (cartProduct != null){
-            quantity += cartProduct.quantity;
+        const existingProduct = cart.items.find( (item) => {
+            return item.productId == prodId;
+        })
+        if (existingProduct == null){
+            cart.items.push({productId:product._id, quantity:quantity});
+        } else{
+            existingProduct.quantity += quantity;
         }
-
-        if (product.stock < quantity){
-            return {errmsg:`Product stock (${product.stock}) is less than the requested quantity (${quantity})`};
+        try {
+            await cart.save();
+            return {errmsg:0};
+        } catch (error) {
+            return {errmsg:`Error saving cart: ${error}`};
         }
-        if (cartProduct == null){
-            cart.products.push({
-                id: prodId,
-                quantity: quantity
-            });
-        }else{
-            cartProduct.quantity = quantity;
-        }
-        this.#updateFile();
-        return {errmsg:0};
         
     }
-    removeProduct(cartId, prodId, quantity=null){
+    async removeProduct(cartId, prodId, quantity=null){
         // Removes $(quantity) number of products of id ${prodId}, deletes all if not specified
-        let cart = this.getCartById(cartId);
-        // To implement:
-        throw new Error("CartManager.removeProduct not implemented yet"); 
+        if (quantity != null){
+            quantity = parseInt(quantity);
+            if (quantity <= 0){
+                return {errmsg:"Quantity must be a positive integer"};
+            }
+        }
+        let cart;
+        try {
+            cart = await cartsModel.findById(cartId);
+            console.log(`cart: ${cart}`);
+        } catch (error) {
+            if (error.name == "CastError"){
+                return {errmsg:"Invalid cart id format specified"};
+            }
+            return {errmsg:`Error finding cart id ${cartId}: ${error.message}`}
+        }
+        if (cart == null){
+            return {errmsg:`Cart id ${cartId} doesn't exist`};
+        }
+        const productIndex = cart.items.findIndex( (item) => {
+            return item.productId == prodId;
+        })
+        if (productIndex == -1){
+            return {errmsg:`Product id ${prodId} not found in cart id ${cartId}`};
+        }
+        let product = cart.items.at(productIndex);
+        if (quantity == null || quantity >= product.quantity){
+            cart.items.splice(productIndex, 1);
+        } else{
+            cart.items.set(productIndex, {productId:product.productId, quantity:product.quantity - quantity});
+        }
+        try {
+            await cart.save();
+            return {errmsg:0}
+        } catch (error) {
+            return {errmsg:`Error saving cart after removing product: ${error.message}`};
+        }
+    }
+    async getCartProducts(cid){
+        try {
+            const cart = await cartsModel.findById(cid);
+            if (cart == null){
+                throw new Error(`Cart with id ${cid} not found`);
+            }
+            return {errmsg:0, products:cart.items};
+        } catch (error) {
+            if (error.name == "CastError"){
+                return {errmsg:"Invalid cart id format specified", products:null};
+            }
+            return {errmsg:error.message, products:null};
+        }
+
     }
 }
 module.exports = CartManager;
