@@ -70,11 +70,18 @@ class ProductManager {
             return {errmsg:error.message};
         }
     }
-    async getProducts(limit = null){
-        if (limit){
-            return await productsModel.find().limit(limit);
+    async getProducts(options = {limit:null, page:null, query:null, sort:null}){
+        try {
+            let products;
+            if (options.limit){
+                products = await productsModel.find().limit(options.limit).lean();
+            } else{
+                products = await productsModel.find().lean();
+            }
+            return {errmsg: 0, products:products};
+        } catch (error) {
+            return {errmsg:error.message};
         }
-        return await productsModel.find().lean();
     }
     async getProductById(id){
         try {

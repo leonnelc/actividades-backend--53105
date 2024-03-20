@@ -9,7 +9,7 @@ router.get("/realtimeproducts", async (req, res) => {
     res.render("realTimeProducts", {title:"Real time products"});
 })
 router.get("/", async (req, res) => {
-    res.render("home", {title:"Home", products:await pm.getProducts()});
+    res.render("home", {title:"Home", products:await pm.getProducts().products});
 })
 router.get("/chat", async (req, res) => {
     res.render("chat", {title:"Chat", messages:await getMessages()});
