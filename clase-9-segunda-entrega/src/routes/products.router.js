@@ -5,14 +5,29 @@ const ProductManager = require("../controllers/ProductManager")
 const pm = new ProductManager();
 
 router.get("/", async (req, res) => {
-    let limit = req.query.limit;
-    if (limit == null){
-        let products = await pm.getProducts();
-        res.send({status:"success", payload:products});
-    }else{
-        let products = await pm.getProducts(parseInt(limit));
-        res.send({status:"success", payload:products});  
+    let limit;
+    let page;
+    let sort;
+    let query;
+    if (!isNaN(req.query.limit)){
+        limit = parseInt(req.query.limit);
     }
+    if (!isNaN(req.query.page)){
+        page = parseInt(req.query.page);
+    }
+    if (["asc", "desc"].includes(req.query.sort)){
+        sort = req.query.sort;
+    }
+    if (req.query.query != null){
+        query = req.query.query;
+    }
+    let result = await pm.getProducts({limit, page, sort, query});
+    if (result.errmsg == 0){
+        let products = result.products;
+        res.send({status:"success", payload:products, totalPages, prevPage, nextPage, page, hasPrevPage, hasNextPage, prevLink, nextLink});
+        return;
+    }
+    res.send({status:"error", message:result.errmsg});
 })
 router.get("/:pid", async (req, res) => {
     let product = await pm.getProductById(req.params.pid);
