@@ -52,12 +52,11 @@ module.exports = (httpServer) => {
         })
         socket.on("addProduct", async (product) => {
             let result = await pm.addProduct(product);
-            if (result.errmsg == 0){
-                io.emit("productList", await pm.getProducts());
-            } else{
-                console.log(`Error adding product: ${result.errmsg}`);
-                socket.emit("error", `Error adding product: ${result.errmsg}`);
+            if (result.error){
+                console.log(`Error adding product: ${result.message}`);
+                socket.emit("error", `Error adding product: ${result.message}`);
             }
+            io.emit("productList", await pm.getProducts());
         })
     });
 

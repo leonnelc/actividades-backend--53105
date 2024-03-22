@@ -5,7 +5,6 @@ class ProductManager {
     #notRequiredFields
     constructor(){
         if (!ProductManager.instance){
-            // Nota para el tutor:
             // Uso el patron de diseño Singleton para usar la misma instancia de ProductManager en el router de products y en el de carts
             // No es necesario pero es mejor porque no se cargan los datos en memoria 2 veces
             ProductManager.instance = this;
@@ -37,51 +36,70 @@ class ProductManager {
         return true;
     }
     async addProduct(product){
-        // returns {errmsg, id} where errmsg=0 means success
         // id -1 is returned if it fails, otherwise it will be the id of the new product
 
         let hasRequiredFields = this.#hasRequiredFields(product);
         if (hasRequiredFields != true){
-            return {errmsg: hasRequiredFields, id:-1};
+            return {error:true, message:hasRequiredFields, id:-1};
         }
         product = {
             title: product.title,
             description: product.description,
             price: product.price,
-            thumbnails: product.thumbnails !== undefined ? product.thumbnails : [],
+            thumbnails: product.thumbnails ?? [],
             code: product.code,
             stock: parseInt(product.stock),
             category: product.category,
-            status: product.status !== undefined ? product.status : true
+            status: product.status ?? true
         }
         try {
             const newProduct = await productsModel.create(product);
             let saved = await newProduct.save();
-            return {errmsg:0, id:saved._id};
+            return {error:false, id:saved._id};
         } catch (error) {
-            return {errmsg:error.message, id:-1};
+            return {error:true, message:error.message, id:-1};
         }
     }
     async deleteProduct(id){
        try {
             await productsModel.findByIdAndDelete(id);
-            return {errmsg:0};
+            return {error:false};
         } catch (error) {
-            return {errmsg:error.message};
+            return {error:true, message:error.message};
         }
     }
-    async getProducts(options = {limit:null, page:null, query:null, sort:null}){
-        try {
-            let products;
-            if (options.limit){
-                products = await productsModel.find().limit(options.limit).lean();
-            } else{
-                products = await productsModel.find().lean();
+    async getProductsPaged(options = {limit:10, page:1, query:null, sort:null}){
+        options.page = options.page ?? 1;
+        options.limit = options.limit ?? 1;
+        if (options.sort != null){
+            switch (options.sort){
+                case "asc":
+                    options.sort = {price:1};
+                    break;
+                case "desc":
+                    options.sort = {price:-1};
+                    break;
+                default:
+                    options.sort = undefined;
             }
-            return {errmsg: 0, products:products};
-        } catch (error) {
-            return {errmsg:error.message};
         }
+        let pagOptions = {
+            sort:options.sort,
+            page:options.page,
+            limit:options.limit,
+        }
+        try {            
+            let result = await productsModel.paginate(options.query, pagOptions);
+            return {error:false,...result};
+        } catch (error) {
+            return {error:true, message:error.message};
+        }
+    }
+    async getProducts(limit = null){
+        if (limit){
+            return await productsModel.find().limit(limit);
+        }
+        return await productsModel.find().lean();
     }
     async getProductById(id){
         try {
@@ -103,7 +121,7 @@ class ProductManager {
         // passing id, null/undefined, or fields that don't exist will have no effect as they will be skipped.
         if (!obj){
             console.error(`Error updating product: ${obj} is not an object`);
-            return {errmsg:`${obj} is not an object`};
+            return {error:true, message:`${obj} is not an object`};
         }
         let product;
         try {
@@ -113,7 +131,7 @@ class ProductManager {
         }
         if (product == null){
             console.error(`Error updating product: couldn't find product id ${id}`);
-            return {errmsg:`Couldn't find product id ${id}`};
+            return {error:true, message:`Couldn't find product id ${id}`};
         }
         for (let key of Object.keys(obj)){
             if (key == "id"){
@@ -127,18 +145,11 @@ class ProductManager {
         }
         try {
             await product.save();
-            return {errmsg:0};
+            return {error:false};
         } catch (error) {
-            return {errmsg:`Error saving updated product: ${error.message}`}
+            return {error:true, message:`Error saving updated product: ${error.message}`};
         }
     }
-    increaseStock(id, quantity){
-        return {errmsg:0};
-    }
-    decreaseStock(id, quantity){
-        return {errmsg:0};
-    }
-
 }
 
 module.exports = ProductManager;
