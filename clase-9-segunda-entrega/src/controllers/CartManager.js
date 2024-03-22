@@ -60,10 +60,10 @@ class CartManager {
             return {errmsg:`Product id ${prodId} doesn't exist`};
         }
         const existingProduct = cart.items.find( (item) => {
-            return item.productId == prodId;
+            return item.product == prodId;
         })
         if (existingProduct == null){
-            cart.items.push({productId:product._id, quantity:quantity});
+            cart.items.push({product:product._id, quantity:quantity});
         } else{
             existingProduct.quantity += quantity;
         }
@@ -97,7 +97,7 @@ class CartManager {
             return {errmsg:`Cart id ${cartId} doesn't exist`};
         }
         const productIndex = cart.items.findIndex( (item) => {
-            return item.productId == prodId;
+            return item.product == prodId;
         })
         if (productIndex == -1){
             return {errmsg:`Product id ${prodId} not found in cart id ${cartId}`};
@@ -106,7 +106,7 @@ class CartManager {
         if (quantity == null || quantity >= product.quantity){
             cart.items.splice(productIndex, 1);
         } else{
-            cart.items.set(productIndex, {productId:product.productId, quantity:product.quantity - quantity});
+            cart.items.set(productIndex, {product:product.product, quantity:product.quantity - quantity});
         }
         try {
             await cart.save();
