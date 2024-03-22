@@ -6,16 +6,35 @@ const pm = new ProductManager();
 
 
 router.get("/realtimeproducts", async (req, res) => {
-    res.render("realTimeProducts", {title:"Real time products"});
+    try {
+        res.render("realTimeProducts", {title:"Real time products"});
+    } catch (error) {
+        res.status(500).send({status:"error", message:"Internal server error"})
+        
+    }
 })
 router.get("/", async (req, res) => {
-    res.render("home", {title:"Home", products:await pm.getProducts().products});
+    try {
+        res.render("home", {title:"Home", products:await pm.getProducts()});
+    } catch (error) {
+        res.status(500).send({status:"error", message:"Internal server error"})
+    }
 })
 router.get("/chat", async (req, res) => {
-    res.render("chat", {title:"Chat", messages:await getMessages()});
+    try {
+        res.render("chat", {title:"Chat", messages:await getMessages()});
+    } catch (error) {
+        res.status(500).send({status:"error", message:"Internal server error"})
+        
+    }
 })
 router.get("/cart", async (req, res) => {
-    res.render("cart", {tile:"Cart"});
+    try {
+        res.render("cart", {tile:"Cart"});
+    } catch (error) {
+        res.status(500).send({status:"error", message:"Internal server error"})
+        
+    }
 })
 
 module.exports = router;
