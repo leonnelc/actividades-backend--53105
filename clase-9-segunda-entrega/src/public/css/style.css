@@ -295,3 +295,19 @@ nav {
 ::-webkit-scrollbar-thumb:hover {
   background-color: #888888;
 }
+
+.pager-container {
+  text-align: center;
+}
+.pager-container .page-button {
+  padding-left: 1rem;
+}
+.pager-container label {
+  position: relative;
+  left: 20%;
+  padding-left: 1rem;
+}
+.pager-container select {
+  position: relative;
+  left: 20%;
+}
