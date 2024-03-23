@@ -42,6 +42,8 @@ router.get("/", async (req, res) => {
         return;
     }
     ({totalPages, prevPage, nextPage, hasPrevPage, hasNextPage, prevLink, nextLink, page} = result);
+    prevLink = prevLink ?? null;
+    nextLink = nextLink ?? null;
     if (hasPrevPage){
         req.query.page = result.page-1;
         prevLink = buildQueryString(req.query,'products');
