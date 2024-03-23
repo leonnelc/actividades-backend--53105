@@ -70,7 +70,7 @@ class ProductManager {
     }
     async getProductsPaged(options = {limit:10, page:1, query:null, sort:null}){
         options.page = options.page ?? 1;
-        options.limit = options.limit ?? 1;
+        options.limit = options.limit ?? 10;
         if (options.sort != null){
             switch (options.sort){
                 case "asc":
