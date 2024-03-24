@@ -32,8 +32,13 @@ app.use((req, res, next) => {
     console.log("Sending products to websockets: ");
     console.log(res.locals.products);
     return;
-
-
+})
+app.use((err, req, res, next) => {
+    console.error(err);
+    if ('body' in err){
+        return res.status(err.status).json({status:"error", message:err.message});
+    }
+    next();
 })
 
 // express-handlebars & config
