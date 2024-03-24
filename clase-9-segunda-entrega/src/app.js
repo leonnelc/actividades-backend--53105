@@ -29,8 +29,6 @@ app.use((req, res, next) => {
     }
     res.send(res.locals.send);
     socketIO.emit("productList", res.locals.products);
-    console.log("Sending products to websockets: ");
-    console.log(res.locals.products);
     return;
 })
 app.use((err, req, res, next) => {
