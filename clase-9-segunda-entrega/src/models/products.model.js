@@ -6,11 +6,11 @@ const numRequired = {type: Number, required:true};
 const productsSchema = new mongo.Schema({
     title: stringRequired,
     description: stringRequired,
-    category: stringRequired,
+    category: {type: String, required:true, index:true},
     price: numRequired,
     stock: numRequired,
     thumbnails: {type:[String], default:[], required:true},
-    status: {type:Boolean, default: true, required:true},
+    status: {type:Boolean, default: true, required:true, index:true},
     code: {
         type: String,
         required:true,
