@@ -95,6 +95,15 @@ class ProductManager {
             return {error:true, message:error.message};
         }
     }
+    async getUniqueProperty(property){
+        // returns all unique values of property
+        try {
+            return await productsModel.distinct(property);
+        } catch (error) {
+            return {error:true, message:error.message};
+        } 
+
+    }
     async getProducts(limit = null){
         if (limit){
             return await productsModel.find().limit(limit);
