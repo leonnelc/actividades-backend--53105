@@ -17,7 +17,7 @@ router.get("/:cid", async (req, res) => {
     }
     res.status(400).send(`Error getting cart: ${result.errmsg}`);
 })
-router.get("/:cid/product", async (req, res) => {
+router.get("/:cid/products", async (req, res) => {
     const result = await cm.getCartProducts(req.params.cid);
     if (result.errmsg === 0){
         res.status(200).send(result.products);
@@ -25,7 +25,7 @@ router.get("/:cid/product", async (req, res) => {
     }
     res.status(400).send(result.errmsg);
 })
-router.post("/:cid/product/:pid", async (req, res) => {
+router.post("/:cid/products/:pid", async (req, res) => {
     let quantity = 1;
     req.query.quantity = parseInt(req.query.quantity);
     if (Number.isInteger(req.query.quantity)){
@@ -54,7 +54,7 @@ router.delete("/:cid", async (req, res) => {
         res.send({status:"error", message:`Cart with id ${req.params.cid} doesn't exist`});
     }
 })
-router.delete("/:cid/product/:pid", async (req, res) => {
+router.delete("/:cid/products/:pid", async (req, res) => {
     let quantity = null;
     req.query.quantity = parseInt(req.query.quantity);
     if (Number.isInteger(req.query.quantity)){
