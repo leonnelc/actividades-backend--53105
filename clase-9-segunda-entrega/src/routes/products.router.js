@@ -59,6 +59,7 @@ router.get("/:pid", async (req, res) => {
     let product = await pm.getProductById(req.params.pid);
     if (product == null){
         res.send({status:"error", message:`Product id "${req.params.pid}" not found`});
+        return;
     }
     res.send({status:"success", payload:product});
 })
@@ -66,6 +67,7 @@ router.get("/code/:code", async (req, res) => {
     let product = await pm.getProductByCode(req.params.code);
     if (product == null){
         res.send({status:"error", message:`Product code "${req.params.code} not found`});
+        return;
     }
     res.send({status:"success", payload:product});
 })
@@ -74,6 +76,7 @@ router.post("/", async (req, res, next) => {
     let result = await pm.addProduct(req.body);
     if (result.error){
         res.send({status:"error", message:`Couldn't add product: ${result.message}`});
+        return;
     }
     res.locals.send = {status:"success", message:`Product added succesfully with id ${result.id}`};
     res.locals.products = await pm.getProducts();
@@ -84,6 +87,7 @@ router.delete("/:pid", async (req, res, next) => {
     let result = await pm.deleteProduct(req.params.pid);
     if (result.error){
         res.send({status:"error", message:`Couldn't delete product: ${result.message}`});
+        return;
     }
     res.locals.send = {status:"success", message: "Product deleted succesfully"};
     res.locals.products = await pm.getProducts();
@@ -94,6 +98,7 @@ router.put("/:pid", async (req, res, next) => {
     let result = await pm.updateProduct(req.params.pid, req.body);
     if (result.error){
         res.send({status:"error", message:`Couldn't update product: ${result.message}`});
+        return;
     }
     res.locals.send = {status:"success", message: "Product succesfully updated"};
     res.locals.products = await pm.getProducts();
