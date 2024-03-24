@@ -9,12 +9,23 @@
       <a href="{{nextLink}}" class="page-button">Next</a>
       <a href="{{lastLink}}" class="page-button">&gt;&gt;</a>
     {{/if}}
+    <div>
     <label for="sort-selector">Sort by price:</label>
     <select name="sort-selector" id="sort-selector">
       <option value="">No</option>
       <option value="asc">Ascending</option>
       <option value="desc">Descending</option>
     </select>
+    </div>
+    <div>
+      <label for="category-selector">Category:</label>
+    <select id="category-selector">
+    <option value="">All categories</option>
+      {{#each categories}}
+        <option value="{{this}}">{{this}}</option>
+      {{/each}}
+    </select>
+    </div>
 </div>
 <div id="product-container">
   {{#if products}}
@@ -28,6 +39,7 @@
         {{#each this.thumbnails}}
           <img src="{{this}}" alt="{{../code}}_img">
         {{/each}}
+        <button onclick="javascript:addToCart('{{this._id}}')">Add to cart</button>
       </div>
     {{/each}}
   {{else}}
