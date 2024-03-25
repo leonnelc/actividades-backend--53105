@@ -141,13 +141,16 @@ class CartManager {
             if (cart == null){
                 return {error:true, message:`Cart id ${cid} not found`};
             }
-            const item = await cart.items.find((doc) => {
+            const itemIndex = await cart.items.findIndex((doc) => {
                 return doc.product == pid;
             });
-            if (item == undefined){
+            if (itemIndex == -1){
               return {error:true, message:`Couldn't find item id ${pid} in cart ${cid}`};  
             }
-            item.quantity = quantity;
+            cart.items[itemIndex].quantity = quantity;
+            if (quantity <= 0){
+                cart.items.splice(itemIndex, 1);
+            }
             cart.save();
             return {error:false};
         } catch (error) {
@@ -167,23 +170,37 @@ class CartManager {
                 let id = cart.items[i].product._id.toString();
                 indexes.set(id, i);
             }
-            for (let item of items){
-                if (item.product == null || item.quantity == null){
+            for (let i in items){
+                if (items[i].product == null || items[i].quantity == null){
                     return {error:true, message:`Objects must contain the properties product and quantity`};
                 }
-                if (!indexes.has(item.product)){
+                if (!indexes.has(items[i].product)){
 
-                    if (await this.ProductManager.getProductById(item.product) == null){
-                        return {error:true, message:`Product id ${item.product} doesn't exist`};
+                    if (items[i].quantity <= 0){
+                        continue;
                     }
-                    indexes.set(item.product, cart.items.push({product:item.product, quantity:item.quantity}));
+                    if (await this.ProductManager.getProductById(items[i].product) == null){
+                        return {error:true, message:`Product id ${items[i].product} doesn't exist`};
+                    }
+                    indexes.set(items[i].product, cart.items.push({product:items[i].product, quantity:items[i].quantity}));
                     continue;
                 }
-                cart.items[indexes.get(item.product)].quantity = item.quantity;
+                if (items[i].quantity <= 0){
+                    let index = indexes.get(items[i].product);
+                    indexes.delete(items[i].product);
+                    cart.items.splice(index, 1);
+                    for (let j = 0; j < cart.items.length;j++){
+                        let id = cart.items[j].product._id.toString();
+                        indexes.set(id, j);
+                    }
+                    continue;
+                }
+                cart.items[indexes.get(items[i].product)].quantity = items[i].quantity;
             }
             await cart.save();
             return {error:false};
         } catch (error) {
+            console.error(error);
             return {error:true, message:error.message};
         }
     }
