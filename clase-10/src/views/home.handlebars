@@ -1,0 +1,53 @@
+<h1>Products</h1>
+<div class="pager-container">
+    <p>Page {{page}} of {{totalPages}}</p>
+      {{#if hasPrevPage}}
+      <a href="{{firstLink}}" class="page-button">&lt;&lt;</a>
+      <a href="{{prevLink}}" class="page-button">Previous</a>
+    {{/if}}
+    {{#if hasNextPage}}
+      <a href="{{nextLink}}" class="page-button">Next</a>
+      <a href="{{lastLink}}" class="page-button">&gt;&gt;</a>
+    {{/if}}
+    <div>
+    <label for="sort-selector">Sort by price:</label>
+    <select name="sort-selector" id="sort-selector">
+      <option value="">No</option>
+      <option value="asc">Ascending</option>
+      <option value="desc">Descending</option>
+    </select>
+    </div>
+    <div>
+      <label for="category-selector">Category:</label>
+    <select id="category-selector">
+    <option value="">All categories</option>
+      {{#each categories}}
+        <option value="{{this}}">{{this}}</option>
+      {{/each}}
+    </select>
+    </div>
+</div>
+<div id="product-container">
+  {{#if products}}
+    {{#each products}}
+      <div class="product-card">
+        <h2>{{this.title}}</h2>
+        <p>{{this.description}}</p>
+        <span>$ {{this.price}}</span>
+        <br>
+        <span>Stock: {{this.stock}}</span>
+        {{#each this.thumbnails}}
+          <img src="{{this}}" alt="{{../code}}_img">
+        {{/each}}
+        <button onclick="javascript:addToCart('{{this._id}}')">Add to cart</button>
+      </div>
+    {{/each}}
+  {{else}}
+    <p>There are currently no products on this page.</p>
+  {{/if}}
+</div>
+
+
+
+
+<script src="js/home.js"></script>
