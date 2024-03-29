@@ -22,6 +22,20 @@ class CartManager {
         return cart ? cart._id: null;
 
     }
+    async emptyCart(id){
+        let cart;
+        try {
+            cart = await cartsModel.findById(id);
+            if (cart == null){
+                throw new Error(`Cart id ${id} not found`);
+            }
+            cart.items = [];
+            await cart.save();
+            return {error:false};
+        } catch (error) {
+            return {error:true, message:error.message};
+        }
+    }
     async getCartById(id){
         try {
             const result = await cartsModel.findById(id);
