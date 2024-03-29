@@ -47,12 +47,21 @@ router.post("/", async (req, res) => {
     res.send({status:"success", message:`Cart id ${cid} added succesfully`});
 })
 router.delete("/:cid", async (req, res) => {
+    const result = await cm.emptyCart(req.params.cid);
+    if (result.error){
+        res.json({status:"error", message:result.message});
+        return;
+    }
+    res.json({status:"success", message:"Cart emptied succesfully"});
+    /*
+    This deletes the cart instead of emptying it
     const cart = await cm.deleteCart(req.params.cid);
     if (cart != null){
         res.send({status:"error", message:`Cart with id ${req.params.cid} doesn't exist`});
         return;
     }
     res.send({status:"success", message:`Cart with id ${cart} deleted succesfully`});
+    */
 })
 router.delete("/:cid/products/:pid", async (req, res) => {
     let quantity = null;
