@@ -18,7 +18,10 @@ sortSelector.onchange = (event) => {
     queryRedirect(["sort"], [event.target.value]);
 }
 categorySelector.onchange = (event) => {
-    queryRedirect(["query"], [event.target.value != "" ?`{"category":"${event.target.value}"}`: ""]);
+    queryRedirect(["query", "page"], [event.target.value != "" ?`{"category":"${event.target.value}"}`: "",""]);
+}
+function goBack(){
+    queryRedirect(["page"], [1]);
 }
 
 function addToCart(id){

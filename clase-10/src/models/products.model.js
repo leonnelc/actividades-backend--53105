@@ -18,6 +18,11 @@ const productsSchema = new mongo.Schema({
     }
 });
 
+productsSchema.pre("save", function(next){
+    this.status = (this.stock > 0);
+    next();
+});
+
 productsSchema.plugin(mongoosePaginate);
 
 

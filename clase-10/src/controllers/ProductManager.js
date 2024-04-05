@@ -142,11 +142,12 @@ class ProductManager {
             console.error(`Error updating product: couldn't find product id ${id}`);
             return {error:true, message:`Couldn't find product id ${id}`};
         }
+        let productKeys = Object.keys(product._doc);
         for (let key of Object.keys(obj)){
-            if (key == "id"){
+            if (["_id", "__v"].includes(key)){
                 continue;
             }
-            if (Object.keys(product).includes(key)){
+            if (productKeys.includes(key)){
                 if (obj[key] != null){
                     product[key] = obj[key];
                 }

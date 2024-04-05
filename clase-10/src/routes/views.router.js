@@ -2,9 +2,13 @@ const express = require("express");
 const router = express.Router();
 const ProductManager = require("../controllers/ProductManager");
 const CartManager = require("../controllers/CartManager");
+const UserManager = require("../controllers/UserManager");
+const session = require("express-session");
 const getMessages = require("../controllers/ChatManager").getMessages;
 const pm = new ProductManager();
 const cm = new CartManager(pm);
+const um = new UserManager();
+const validator = require("email-validator");
 
 function buildQueryString(queryObj, baseString = "", replace={}){
     result = baseString;
@@ -21,7 +25,18 @@ function buildQueryString(queryObj, baseString = "", replace={}){
     }
     return result;
 }
-router.get("/realtimeproducts", async (req, res) => {
+function getUsername(email){
+    let username = email.split("@")[0];
+    username = username[0].toUpperCase() + username.substring(1);
+    return username;
+}
+function adminAuth(req, res, next){
+    if (req.session.user.role === "admin"){
+        return next();
+    }
+    return res.status(403).render("message", {error:true, message:"You're not authorized to be here"});
+}
+router.get("/realtimeproducts", adminAuth, async (req, res) => {
     try {
         res.render("realTimeProducts", {title:"Real time products"});
     } catch (error) {
@@ -30,7 +45,108 @@ router.get("/realtimeproducts", async (req, res) => {
     }
 })
 router.get("/", async (req, res) => {
-    res.render("message", {message:"This page is empty, use the navbar to go somewhere else."});
+    if (req.session.loggedIn){
+        return res.redirect("products");
+    }
+    return res.redirect("login");
+})
+router.get("/profile", async (req, res) => {
+    if (!req.session.loggedIn){
+        return res.redirect("login");
+    }
+    res.render("profile", {user:req.session.user});
+})
+router.get("/logout", async (req, res) => {
+    req.session.destroy( (err) => {
+        if (err){
+            return res.render("message", {error:true, message:err.message});
+        }
+        res.redirect("login");
+    });
+})
+router.get("/register", async (req, res) => {
+    let loggedIn = req.session.loggedIn ?? false;
+    let errorMessage;
+    let registerSuccess = req.session.registerSuccess;
+    if (req.session.invalidRegister){
+        errorMessage = req.session.invalidRegister.message;
+        req.session.invalidRegister = undefined;
+    }
+    req.session.registerSuccess = undefined;
+    res.render("register", {loggedIn, username:req.session.username, errorMessage, registerSuccess});
+})
+router.post("/register", async (req, res) => {
+    console.log(req.body);
+    let email = req.body.email?.trim().toLowerCase() ?? false;
+    let age = Number(req.body.age);
+    let first_name = req.body.first_name?.trim() ?? false;
+    let last_name = req.body.last_name?.trim() ?? false;
+    let password = req.body.password ?? false;
+    if (age <= 0){
+        req.session.invalidRegister = {message:"Invalid age"};
+        return res.redirect("register");
+    }
+    if (!first_name){
+        req.session.invalidRegister = {message:"First name is required"};
+    }
+    if (!last_name){
+        req.session.invalidRegister = {message:"Last name is required"}
+    }
+    if (!password){
+        req.session.invalidRegister = {message:"Password is required"};
+        return res.redirect("register");
+    }
+    if (!validator.validate(email)){
+        req.session.invalidRegister = {message:"Invalid email"}
+        return res.redirect("register");
+    }
+    const result = await um.addUser({email, password, age, first_name, last_name});
+    if (result.error){
+        req.session.invalidRegister = {message:result.message};
+        return res.redirect("register");
+    }
+    req.session.registerSuccess = true;
+    res.redirect("register");
+})
+router.get("/login", async (req, res) => {
+    let loggedIn = req.session.loggedIn ?? false;
+    let errorMessage;
+    let loginSuccess = req.session.loginSuccess;
+    if (req.session.invalidLogin){
+        errorMessage = req.session.invalidLogin.message;
+        req.session.invalidLogin = undefined;
+    }
+    req.session.loginSuccess = undefined;
+    res.render("login", {loggedIn, username:req.session.username, errorMessage, loginSuccess});
+})
+router.post("/login", async (req, res) => {
+    let email = req.body.email?.trim().toLowerCase() ?? false;
+    let password = req.body.password ?? false;
+    if (!password){
+        req.session.invalidLogin = {message:"Invalid password"};
+        return res.redirect("login");
+    }
+    if (!validator.validate(email)){
+        req.session.invalidLogin = {message:"Invalid email"}
+        return res.redirect("login");
+    }
+    const result = await um.login(email, password);
+    if (!result.result){
+        req.session.invalidLogin = {message:result.message};
+        return res.redirect("login");
+    }
+    req.session.loggedIn = true;
+    req.session.loginSuccess = true;
+    req.session.user = result.user;
+    req.session.username = getUsername(result.user.email);
+    let counter = Number(req.signedCookies.count);
+    res.cookie("count", counter+1, {maxAge:86400000, signed:true}) // 86400000 ms = 24 hours
+    req.session.save( (err) => {
+        if (err){
+            return res.render("message", {error:true, message:err.message});
+        }
+        res.redirect("login"); 
+    } )
 })
 router.get("/products", async (req, res) => {
     try {
@@ -64,9 +180,13 @@ router.get("/products", async (req, res) => {
             lastLink = buildQueryString(req.query, '', {page:result.totalPages});
         }
         const categories = await pm.getUniqueProperty("category");
-
-        res.render("home", {title:"Home", products:result.docs, page, totalPages, prevPage, nextPage, hasPrevPage, hasNextPage, prevLink, nextLink, firstLink, lastLink, categories});
+        let loggedIn = req.session.loggedIn;
+        let username = req.session.username;
+        let role = req.session.user?.role;
+        let invalidPage = (page > totalPages || !Number.isInteger(page));
+        res.render("home", {invalidPage, title:"Home", loggedIn, username, role, products:result.docs, page, totalPages, prevPage, nextPage, hasPrevPage, hasNextPage, prevLink, nextLink, firstLink, lastLink, categories});
     } catch (error) {
+        console.log(error);
         res.status(500).json({status:"error", message:"Internal server error"});
     }
 })

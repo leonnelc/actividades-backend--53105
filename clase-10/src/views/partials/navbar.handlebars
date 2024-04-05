@@ -1,9 +1,34 @@
-<nav>
-  <a class="navbar-brand" href="/">Ecommerce</a>
-  <ul class="navbar-nav">
-    <li class="nav-item"><a class="nav-link" href="/products">/products</a></li>
-    <li class="nav-item"><a class="nav-link" href="/chat">/chat</a></li>
-    <li class="nav-item"><a class="nav-link" href="/carts">/carts</a></li>
-    <li class="nav-item"><a class="nav-link" href="/realtimeproducts">/RealTimeProducts</a></li>
-  </ul>
+<nav class="navbar navbar-expand">
+  <div class="container-fluid">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item dropdown">
+          <a
+            class="nav-link dropdown-toggle"
+            href="#"
+            role="button"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+          >
+            Routes
+          </a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="/login">/login</a></li>
+            <li><a class="dropdown-item" href="/products">/products</a></li>
+            <li><a
+                class="dropdown-item"
+                href="/realtimeproducts"
+              >/RealTimeProducts</a></li>
+            <li><a class="dropdown-item" href="/carts">/carts</a></li>
+            <li><a class="dropdown-item" href="/profile">/profile</a></li>
+            <li><a class="dropdown-item" href="/chat">/chat</a></li>
+          </ul>
+        </li>
+      </ul>
+    <a class="navbar-brand mx-auto" href="/">Ecommerce</a>
+      <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+          <a class="nav-link" href="/">Home</a>
+        </li>
+      </ul>
+  </div>
 </nav>

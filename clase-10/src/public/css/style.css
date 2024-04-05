@@ -1,16 +1,8 @@
-h1 {
-  text-align: center;
-  color: #e6e6e6;
-}
-
+@import url("https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css");
 #product-container {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   gap: 1rem;
-}
-
-a {
-  color: #d1b3c4;
 }
 
 #errmsg {
@@ -34,15 +26,6 @@ a {
 #addProductBtn:hover {
   background-color: #7986cb;
 }
-
-
-
-body {
-  background-color: #1a1a1a;
-  color: #e6e6e6;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
 .swal2-popup {
   background-color: #333333 !important;
   color: #e6e6e6 !important;
@@ -126,6 +109,14 @@ body {
   transform: translateY(-5px);
   box-shadow: 5px 15px 20px rgba(0, 0, 0, 0.4);
 }
+.animation-lift {
+  box-shadow: 5px 10px 15px rgba(0, 0, 0, 0.5);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.animation-lift:hover {
+  transform: translateY(-0.5rem);
+  box-shadow: 5px 15px 20px rgba(0, 0, 0, 0.8);
+}
 
 .product-card h2 {
   margin-top: 0;
@@ -148,7 +139,7 @@ body {
   width: 150px;
   height: 100px;
   border-radius: 0.5rem;
-  object-fit: cover;
+  object-fit: fill;
   margin-bottom: 1rem;
 }
 
@@ -165,43 +156,6 @@ body {
 
 .product-card button:hover {
   background-color: #7986cb;
-}
-/* Navbar Styles */
-nav {
-  background-color: #333333;
-  color: #e6e6e6;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem;
-}
-
-.navbar-brand {
-  font-size: 1.5rem;
-  font-weight: bold;
-  text-decoration: none;
-  color: #e6e6e6;
-}
-
-.navbar-nav {
-  display: flex;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.nav-item {
-  margin-left: 1rem;
-}
-
-.nav-link {
-  color: #d1b3c4;
-  text-decoration: none;
-  transition: color 0.3s ease;
-}
-
-.nav-link:hover {
-  color: #e6e6e6;
 }
 /*            CHAT                */
 .chat-container {
@@ -279,8 +233,15 @@ nav {
 }
 
 /* Scrollbar Styles */
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hidden {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 2px;
 }
 
 ::-webkit-scrollbar-track {
@@ -294,20 +255,4 @@ nav {
 
 ::-webkit-scrollbar-thumb:hover {
   background-color: #888888;
-}
-
-.pager-container {
-  text-align: center;
-}
-.pager-container .page-button {
-  padding-left: 1rem;
-}
-.pager-container label {
-  position: relative;
-  left: 20%;
-  padding-left: 1rem;
-}
-.pager-container select {
-  position: relative;
-  left: 20%;
 }
