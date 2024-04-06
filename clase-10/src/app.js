@@ -11,6 +11,7 @@ const app = express();
 const productsRouter = require("./routes/products.router");
 const cartsRouter = require("./routes/carts.router");
 const viewsRouter = require("./routes/views.router");
+const sessionsRouter = require("./routes/sessions.router");
 const exphbs = require("express-handlebars");
 
 // middlewares
@@ -39,6 +40,7 @@ app.set("views", "./src/views");
 app.use(express.static("./src/public"));
 app.use("/api/products", productsRouter);
 app.use("/api/carts", cartsRouter);
+app.use("/api/sessions", sessionsRouter);
 app.use("/", viewsRouter);
 
 // middlewares
