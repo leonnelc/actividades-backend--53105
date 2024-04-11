@@ -1,5 +1,5 @@
 {
-  "name": "clase-10",
+  "name": "clase-11",
   "version": "1.0.0",
   "description": "",
   "main": "src/app.js",
@@ -16,6 +16,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "bcrypt": "^5.1.1",
     "connect-mongo": "^5.1.0",
     "cookie-parser": "^1.4.6",
     "email-validator": "^2.0.4",
