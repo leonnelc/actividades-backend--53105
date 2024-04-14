@@ -6,10 +6,9 @@
     <h6 class="display-6 text-info">Redirecting to products in 3 seconds...</h6>
   </div>
   <script>
-    setTimeout(function() {
-        window.location.href = "products";
-    }, 3000); // 3 seconds
-</script>
+    setTimeout(function() { window.location.href = "products"; }, 3000); // 3
+    seconds
+  </script>
 {{else}}
   {{#if loggedIn}}
     <div class="text-center mt-5">
@@ -46,7 +45,9 @@
           />
           <label for="password">Password</label>
         </div>
-        {{#if errorMessage}}<p class="text-danger">{{errorMessage}}</p>{{/if}}
+        {{#if errorMessage}}<p
+            class="text-wrap text-danger"
+          >{{errorMessage}}</p>{{/if}}
 
         <!-- Submit button -->
         <button type="submit" class="btn btn-primary btn-block mb-4">Sign in</button>
@@ -54,6 +55,13 @@
         <!-- Register button -->
         <div class="text-center">
           <p>Not a member? <a href="register">Register</a></p>
+        </div>
+        <div>
+          <p class="mb-0">Or sign in with
+          </p>
+          <a href="/api/sessions/github" target="_self" class="btn"><i
+              class="bi bi-github"
+            ></i></a>
         </div>
       </form>
     </div>

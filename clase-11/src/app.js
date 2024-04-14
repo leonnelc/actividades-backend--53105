@@ -3,6 +3,8 @@ const mongo = require("mongoose");
 const cookieParser = require("cookie-parser");
 const session = require("express-session");
 const MongoStore = require("connect-mongo");
+const passport = require("passport");
+const initializePassport = require("./config/passport.config");
 
 const PORT = 8080;
 
@@ -30,6 +32,9 @@ app.use(
     }),
   })
 );
+initializePassport();
+app.use(passport.initialize());
+app.use(passport.session());
 
 // express-handlebars & config
 app.engine("handlebars", exphbs.engine());

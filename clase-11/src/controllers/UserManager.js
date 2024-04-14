@@ -35,6 +35,15 @@ class UserManager {
             return {error:true, message:`Error adding user: ${error.message}`}
         }
     }
+    isAdmin(email){
+        return admins.has(email);
+    }
+    isValidAdmin(email, password){
+        if (!admins.has(email)){
+            return false;
+        }
+        return password === admins.get(email);
+    }
     async login(email, password){
         let user = {email:String(), password:String(), role:String(), age:Number(), first_name:String(), last_name:String()};
         if (admins.has(email)){
