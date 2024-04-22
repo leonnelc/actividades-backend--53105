@@ -48,26 +48,23 @@ app.use("/api/carts", cartsRouter);
 app.use("/api/sessions", sessionsRouter);
 app.use("/", viewsRouter);
 
-// middlewares
+// other middlewares
 app.use((req, res, next) => {
-  // this middleware is used to send updates to clients using websockets
+  // this is used to send updates to clients using websockets
   if (!res.locals.send || !res.locals.products) {
-    next();
-    return;
+    return next();
   }
   res.send(res.locals.send);
   socketIO.emit("productList", res.locals.products);
-  return;
 });
+app.use((req, res) => {
+  // this renders a 404 not found error message when users try to request an invalid endpoint 
+  res.status(404).render("message", {message:"404 Page not found", error:true})
+})
 app.use((err, req, res, next) => {
   // this middleware is used to handle errors not catched by routers and avoid sending the error stack trace
   console.error(err);
-  if ("body" in err) {
-    return res
-      .status(err.status)
-      .json({ status: "error", message: err.message });
-  }
-  next();
+  res.status(err.status).render("message", {error:true, message:"An error has occurred ):"});
 });
 
 const httpServer = app.listen(PORT, () => {
