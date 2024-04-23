@@ -66,7 +66,7 @@ router.get(
 );
 
 router.get(
-  "/githubcallback",
+  "/github/callback",
   passport.authenticate("github", { failureRedirect: "/login" }),
   async (req, res) => {
     req.session.user = req.user;
@@ -75,5 +75,14 @@ router.get(
     res.redirect("/profile");
   }
 );
+
+router.get("/google", passport.authenticate("google", {failureRedirect: "/login", scope:["profile", "email"]}));
+
+router.get("/google/callback", passport.authenticate("google", {failureRedirect: "/login"}), async (req, res) => {
+  req.session.user = req.user;
+  req.session.username = req.user.first_name;
+  req.session.loggedIn = true;
+  res.redirect("/profile");
+})
 
 module.exports = router;

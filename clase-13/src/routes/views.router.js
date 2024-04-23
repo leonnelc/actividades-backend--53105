@@ -27,6 +27,12 @@ function adminAuth(req, res, next){
     }
     return res.status(403).render("message", {error:true, message:"You're not authorized to be here"});
 }
+function auth(req, res, next){
+    if (req.session.loggedIn){
+        return next();
+    }
+    return res.redirect("/login");
+}
 router.get("/realtimeproducts", adminAuth, async (req, res) => {
     try {
         res.render("realTimeProducts", {title:"Real time products"});
@@ -127,8 +133,12 @@ router.get("/chat", async (req, res) => {
         
     }
 })
+router.get("/cart", auth, async (req, res) => {
+    let cartId = req.session.user.cart;
+    res.redirect(`/carts/${cartId}`);
+})
 router.get("/carts", async (req, res) => {
-    res.render("message", {message:"You didn't specify the cart id in the url. There's nothing here.", p:"Try /carts/65fe45c44fa17fb49a863d0a"});
+    res.redirect("/cart");
 })
 router.get("/carts/:cid", async (req, res) => {
     try {

@@ -9,6 +9,7 @@ const cartItemSchema = new Schema({
 
 const cartSchema = new Schema({
   items: [cartItemSchema],
+  owner: {type: String, required:false}, // the email of the user that owns the cart
   total: { type: Number, default: 0 }
 });
 cartSchema.pre("findOne", function(next){
