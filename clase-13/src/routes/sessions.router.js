@@ -57,6 +57,13 @@ router.get("/logout", (req, res) => {
   res.redirect("/login");
 });
 
+router.get("/current", (req, res) => {
+  if (!req.session.loggedIn){
+    return res.status(404).json({status:"error",message:"User not found"});
+  }
+  return res.json({status:"success", payload:req.session.user});
+})
+
 
 router.get(
   "/github",
