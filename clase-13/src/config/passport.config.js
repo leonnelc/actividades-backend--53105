@@ -3,14 +3,8 @@ const LocalStrategy = require("passport-local");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const GitHubStrategy = require("passport-github2");
 const validator = require("email-validator");
-
-// github api
-const GITHUB_ID = "e3e155e8b32711986eb7";
-const GITHUB_SECRET = "e5c9e0f4336941e733d805981d9865f7367ab86a";
-
-// google api
-const GOOGLE_ID = "543113857778-f2o1ff3oahhmdqr5a73c0ard7tkihlic.apps.googleusercontent.com";
-const GOOGLE_SECRET = "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";
+const {GITHUB_ID, GITHUB_SECRET, GITHUB_CALLBACK, 
+  GOOGLE_ID, GOOGLE_SECRET, GOOGLE_CALLBACK} = require("./config");
 
 const UserModel = require("../models/user.model");
 const CartModel = require("../models/carts.model");
@@ -150,7 +144,7 @@ const initializePassport = () => {
         passReqToCallback: true,
         clientID: GITHUB_ID,
         clientSecret: GITHUB_SECRET,
-        callbackURL: "http://localhost:8080/api/sessions/github/callback",
+        callbackURL: GITHUB_CALLBACK,
       },
       async (req, accessToken, refreshToken, profile, done) => {
         try {
@@ -190,7 +184,7 @@ const initializePassport = () => {
         passReqToCallback: true,
         clientID: GOOGLE_ID,
         clientSecret: GOOGLE_SECRET,
-        callbackURL: "http://localhost:8080/api/sessions/google/callback",
+        callbackURL: GOOGLE_CALLBACK,
       },
       async function (req, accessToken, refreshToken, profile, done) {
         try {

@@ -1,12 +1,10 @@
 const express = require("express");
 const mongo = require("mongoose");
-const cookieParser = require("cookie-parser");
 const session = require("express-session");
 const MongoStore = require("connect-mongo");
 const passport = require("passport");
 const initializePassport = require("./config/passport.config");
-
-const PORT = 8080;
+const { PORT, HOSTNAME, MONGO_URL } = require("./config/config");
 
 const app = express();
 
@@ -19,7 +17,6 @@ const exphbs = require("express-handlebars");
 // middlewares
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser("secretCoder"));
 app.use(
   session({
     secret: "secretCoder",
@@ -27,8 +24,8 @@ app.use(
     saveUninitialized: false,
     store: MongoStore.create({
       mongoUrl:
-        "mongodb+srv://leonnelc:coderhouse@cluster0.euhg3so.mongodb.net/ecommerce?retryWrites=true&w=majority&appName=Cluster0",
-      ttl:86400
+        MONGO_URL,
+      ttl: 86400,
     }),
   })
 );
@@ -58,17 +55,21 @@ app.use((req, res, next) => {
   socketIO.emit("productList", res.locals.products);
 });
 app.use((req, res) => {
-  // this renders a 404 not found error message when users try to request an invalid endpoint 
-  res.status(404).render("message", {message:"404 Page not found", error:true})
-})
+  // this renders a 404 not found error message when users try to request an invalid endpoint
+  res
+    .status(404)
+    .render("message", { message: "404 Page not found", error: true });
+});
 app.use((err, req, res, next) => {
   // this middleware is used to handle errors not catched by routers and avoid sending the error stack trace
   console.error(err);
-  res.status(err.status).render("message", {error:true, message:"An error has occurred ):"});
+  res
+    .status(err.status)
+    .render("message", { error: true, message: "An error has occurred ):" });
 });
 
 const httpServer = app.listen(PORT, () => {
-  console.log(`Server listening at http://localhost:${PORT}`);
+  console.log(`Server listening at ${HOSTNAME ? HOSTNAME:"localhost"}:${PORT}`);
 });
 
 // socket.io logic
@@ -78,9 +79,7 @@ const socketIO = require("./socket-io")(httpServer);
 
 console.log("Connecting to database...");
 mongo
-  .connect(
-    "mongodb+srv://leonnelc:coderhouse@cluster0.euhg3so.mongodb.net/ecommerce?retryWrites=true&w=majority&appName=Cluster0"
-  )
+  .connect(MONGO_URL)
   .then(async () => {
     console.log("Success connecting to database");
   })
