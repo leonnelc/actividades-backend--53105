@@ -27,7 +27,6 @@ const initializePassport = () => {
   });
 
   passport.deserializeUser(async (id, done) => {
-    // id wil
     if (um.isAdmin(id)) {
       return done(null, {
         first_name: "Admin",
@@ -35,6 +34,7 @@ const initializePassport = () => {
         role: "admin",
         email: id,
         age: 0,
+        cart:""
       });
     }
     let user = await UserModel.findById({ _id: id });
@@ -119,6 +119,7 @@ const initializePassport = () => {
               role: "admin",
               email,
               age: null,
+              cart:""
             });
           }
           const user = await UserModel.findOne({ email });

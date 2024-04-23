@@ -135,13 +135,20 @@ router.get("/chat", async (req, res) => {
 })
 router.get("/cart", auth, async (req, res) => {
     let cartId = req.session.user.cart;
+    console.log(`user:${JSON.stringify(req.session.user)}`);
     res.redirect(`/carts/${cartId}`);
 })
 router.get("/carts", async (req, res) => {
+    if (req.session.user.role == "admin"){
+        return res.render("message", {error:true, message:"No cart id specified"});
+    }
     res.redirect("/cart");
 })
 router.get("/carts/:cid", async (req, res) => {
     try {
+        if (req.session.user.cart != req.params.cid && req.session.user.role != "admin"){
+            return res.render("message", {error:true, message:"You are not authorized to see other people's carts!"});
+        }
         const result = await cm.getCartById(req.params.cid);
         if (result.errmsg !== 0){
             res.render("cart", {title:"Cart", cartFound:false, cid:req.params.cid});

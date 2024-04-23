@@ -38,6 +38,7 @@ router.post(
       age: req.user.age,
       email: req.user.email,
       role: req.user.role,
+      cart: req.user.cart
     };
     req.session.username = req.user.first_name;
 
