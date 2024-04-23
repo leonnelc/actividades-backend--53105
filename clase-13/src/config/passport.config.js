@@ -91,7 +91,7 @@ const initializePassport = () => {
             age,
             role: "user",
             password: um.hash(password),
-            cart: await CartModel.create(new CartModel({owner:email})),
+            cart: (await CartModel.create(new CartModel({owner:email})))._id,
           };
 
           let result = await UserModel.create(newUser);
@@ -166,7 +166,7 @@ const initializePassport = () => {
             let newUser = {
               first_name: profile._json.name,
               email: profile._json.email,
-              cart: await CartModel.create(new CartModel({owner:profile._json.email})),
+              cart: (await CartModel.create(new CartModel({owner:profile._json.email})))._id,
               last_name: null,
               age: null,
               password: null,
@@ -206,7 +206,7 @@ const initializePassport = () => {
             let newUser = {
               first_name: profile._json.given_name,
               email: profile._json.email,
-              cart: await CartModel.create(new CartModel({owner:profile._json.email})),
+              cart: (await CartModel.create(new CartModel({owner:profile._json.email})))._id,
               last_name: profile._json.family_name,
               age: null,
               password: null,
