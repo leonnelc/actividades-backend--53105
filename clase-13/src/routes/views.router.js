@@ -149,6 +149,7 @@ router.get("/products", async (req, res) => {
         let loggedIn = req.session.loggedIn;
         let username = req.session.username;
         let role = req.session.user?.role;
+        let cart = req.session.user?.cart;
         let invalidPage = page > totalPages || !Number.isInteger(page);
         res.render("home", {
             invalidPage,
@@ -156,6 +157,7 @@ router.get("/products", async (req, res) => {
             loggedIn,
             username,
             role,
+            cart,
             products: result.docs,
             page,
             totalPages,
