@@ -5,11 +5,11 @@
         {{#if hasProducts}}
         {{#each products}}
         <div class="col-md-4 mb-3">
-            <div class="card">
+            <div class="card" id="{{this.product._id}}" data-quantity="{{this.quantity}}">
                 <div class="card-body">
                     <h5 class="card-title">{{this.product.title}}</h5>
-                    <p class="card-text">Price: {{this.product.price}}</p>
-                    <p class="card-text">Quantity: {{this.quantity}}</p>
+                    <p class="card-text" id="price">Price: <span id="price">{{this.product.price}}</span></p>
+                    <p class="card-text" id="quantity">Quantity: <input id="quantity" type="number" class="border-0 bg-transparent" style="width: 3.2rem;" value={{this.quantity}}></input><button class="btn btn-primary" onclick="javascript:updateQuantity('{{this.product._id}}')">Apply</button></p>
                     <button class="btn btn-secondary" onclick="javascript:removeFromCart('{{this.product._id}}')">Remove
                         from cart</button>
                 </div>
@@ -23,7 +23,7 @@
             <a href="/products" class="btn btn-primary">Continue Shopping</a>
         </div>
         <div class="col-md-6 text-right">
-            <button type="button" class="btn btn-danger" id="clear-cart">Clear Cart</button>
+            <button type="button" class="btn btn-danger" onclick="javascript:clearCart()">Clear Cart</button>
         </div>
         {{else}}
         {{> message message="Cart is empty"}}
@@ -39,3 +39,5 @@
     <a href="/products" class="btn btn-primary">Continue Shopping</a>
 </div>
 {{/if}}
+{{>alerts}}
+<script src="/js/cart.js"></script>

@@ -70,15 +70,15 @@ router.delete("/:cid/products/:pid", async (req, res) => {
         quantity = req.query.quantity;
     }
     let result = await cm.removeProduct(req.params.cid, req.params.pid, quantity);
-    if (result.errmsg === 0){
-        if (quantity == null){
-            res.status(200).send(`Product id ${req.params.pid} deleted succesfully from cart id ${req.params.cid}`);
-        } else{
-            res.status(200).send(`Product id ${req.params.pid} deleted succesfully ${quantity} times from cart id ${req.params.cid}`);
-        }
-    } else{
-        res.status(400).send(`Error removing product: ${result.errmsg}`);
+    if (result.errmsg != 0){
+        return res.status(400).json({status:"error", message:`Error removing product: ${result.errmsg}`});
     }
+    if (quantity == null){
+        res.status(200).json({status:"success", message:`Product id ${req.params.pid} deleted succesfully from cart id ${req.params.cid}`});
+    } else{
+        res.status(200).json({status:"success", message:`Product id ${req.params.pid} deleted succesfully ${quantity} times from cart id ${req.params.cid}`});
+    }
+    
 })
 router.put("/:cid", async (req, res) => {
     try {

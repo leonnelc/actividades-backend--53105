@@ -34,38 +34,16 @@ async function addToCart(productId) {
       { method: "POST" }
     );
     const result = await response.json();
-    if (result.status) {
-      appendAlert("Product added succesfully", "success");
+    if (result.status == "error") {
+      return appendAlert(result.message, "danger");
     }
+    appendAlert("Product added succesfully", "success");
   } catch (error) {
-    appendAlert("Couldn't add product", "danger");
+    switch (error.name){
+      case "ReferenceError":
+        return appendAlert("Log in before adding products", "info");
+      default:
+        appendAlert("Couldn't add product", "danger");
+    }
   }
 }
-const alertContainer = document.getElementById("alert-container");
-const appendAlert = (message, type) => {
-  const alert = document.createElement("div");
-  const alertMessage = document.createElement("div");
-  alertMessage.innerHTML = message;
-  const button = document.createElement("button");
-  button.type = "button";
-  button.classList.add("btn-close");
-  button.setAttribute("data-bs-dismiss", "alert");
-  button.setAttribute("aria-label", "Close");
-  alert.classList.add(
-    "alert",
-    `alert-${type}`,
-    "alert-dismissible",
-    "my-1",
-    "mx-auto",
-    "fade"
-  );
-  alert.appendChild(alertMessage);
-  alert.appendChild(button);
-  alertContainer.append(alert);
-  setTimeout(() => {
-    alert.classList.add("show");
-  }, 10);
-  setTimeout(() => {
-    button.click();
-  }, 2000);
-};
