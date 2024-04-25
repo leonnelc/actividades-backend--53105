@@ -49,14 +49,20 @@ socket.on("error", (error) => {
 socket.on("message", (message) => {
     let username = message.username;
     let text = message.message;
-    let scroll = (chatMessages.scrollHeight - chatMessages.clientHeight == chatMessages.scrollTop);
+    let scrollableHeight = chatMessages.scrollHeight - chatMessages.clientHeight;
+    let scroll = (chatMessages.scrollTop == scrollableHeight);
     addMessage(username, text);
     if (scroll){
-        chatMessages.scrollTop = chatMessages.scrollHeight;
+        chatMessages.scrollTop = chatMessages.scrollHeight - chatMessages.clientHeight;
     }
 })
+socket.on("alert", (alert) => {
+    Swal.fire({
+        title: alert
+      });
+})
 
-
+/*
 Swal.fire({
     title: "Enter your username (email)",
     input: "text",
@@ -102,7 +108,9 @@ Swal.fire({
       });
     }
   });
-
+*/
+// utility function that waits and can be cancelled with sleep.abort()
+// useful when using with a promise that uses sleep.abort() as a callback
 const sleep = (ms) => {
     let resolver;
     let timeoutId;

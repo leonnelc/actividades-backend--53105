@@ -1,21 +1,33 @@
 const ProductManager = require("./controllers/ProductManager");
 const ChatManager = require("./controllers/ChatManager");
 const pm = new ProductManager();
-module.exports = (httpServer) => {
+function authAdmin(socket){
+    const session = socket.request.session;
+    if (session.user.role === "admin"){
+        return;
+    }
+    socket.emit("error", "You're not authorized to do that.");
+    socket.disconnect();
+}
+module.exports = (httpServer, sessionMiddleware) => {
     const io = require('socket.io')(httpServer); // Use received httpServer
-
+    io.engine.use(sessionMiddleware);
     io.on('connection', async (socket) => {
+        if (!socket.request.session.loggedIn){
+            socket.emit("error", "Not logged in");
+            return socket.disconnect();
+        }
+        const username = socket.request.session.user.email;
+        socket.emit("alert", `Logged in as ${username}`);
         console.log("User connected :)");
         socket.emit("productList", await pm.getProducts());
         socket.on('disconnect', () => {
             // ...
+            socket.disconnect();
             console.log("User disconnected :(");
         });
 
-
-
         // real time chat
-        let username;
         socket.on("message", (message) => {
             if (username == null){
                 socket.emit("error", "You need to log in before sending messages!")
@@ -44,13 +56,16 @@ module.exports = (httpServer) => {
 
         // real time products
         socket.on("getProductList", async () => {
+            authAdmin(socket);
             socket.emit("productList", await pm.getProducts());
         })
         socket.on("deleteProduct", async (pid) => {
+            authAdmin(socket);
             await pm.deleteProduct(pid);
             io.emit("productList", await pm.getProducts());
         })
         socket.on("addProduct", async (product) => {
+            authAdmin(socket);
             let result = await pm.addProduct(product);
             if (result.error){
                 console.log(`Error adding product: ${result.message}`);

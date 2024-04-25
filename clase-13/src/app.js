@@ -17,8 +17,7 @@ const exphbs = require("express-handlebars");
 // middlewares
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(
-  session({
+const sessionMiddleware = session({
     secret: "secretCoder",
     resave: true,
     saveUninitialized: false,
@@ -28,7 +27,7 @@ app.use(
       ttl: 86400,
     }),
   })
-);
+app.use(sessionMiddleware);
 initializePassport();
 app.use(passport.initialize());
 app.use(passport.session());
@@ -73,7 +72,7 @@ const httpServer = app.listen(PORT, () => {
 });
 
 // socket.io logic
-const socketIO = require("./socket-io")(httpServer);
+const socketIO = require("./socket-io")(httpServer, sessionMiddleware);
 
 // connect to database
 
