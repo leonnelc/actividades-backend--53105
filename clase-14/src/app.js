@@ -4,7 +4,7 @@ const session = require("express-session");
 const MongoStore = require("connect-mongo");
 const passport = require("passport");
 const initializePassport = require("./config/passport.config");
-const { PORT, HOSTNAME, MONGO_URL } = require("./config/config");
+const { PORT, HOSTNAME, MONGO_URL, SESSION_SECRET} = require("./config/config");
 
 const app = express();
 
@@ -18,7 +18,7 @@ const exphbs = require("express-handlebars");
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 const sessionMiddleware = session({
-    secret: "secretCoder",
+    secret: SESSION_SECRET,
     resave: true,
     saveUninitialized: false,
     store: MongoStore.create({

@@ -13,6 +13,7 @@ const configObject = {
     GITHUB_CALLBACK: process.env.GITHUB_CALLBACK,
     GOOGLE_ID: process.env.GOOGLE_ID,
     GOOGLE_SECRET: process.env.GOOGLE_SECRET,
-    GOOGLE_CALLBACK: process.env.GOOGLE_CALLBACK
+    GOOGLE_CALLBACK: process.env.GOOGLE_CALLBACK,
+    SESSION_SECRET: process.env.SESSION_SECRET
 }
 module.exports = configObject;
