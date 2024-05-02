@@ -5,6 +5,12 @@
   gap: 1rem;
 }
 
+.transition {
+  transition: all 0.2s !important;
+}
+.invisibility {
+  opacity: 0 !important;
+}
 #errmsg {
   color: #ff7675;
   text-align: center;

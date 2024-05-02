@@ -1,5 +1,5 @@
 const alertContainer = document.getElementById("alert-container");
-const appendAlert = (message, type) => {
+const appendAlert = (message, type, duration) => {
   const alert = document.createElement("div");
   const alertMessage = document.createElement("div");
   alertMessage.innerHTML = message;
@@ -23,7 +23,12 @@ const appendAlert = (message, type) => {
   setTimeout(() => {
     alert.classList.add("show");
   }, 10);
-  setTimeout(() => {
-    button.click();
-  }, 2500);
+  if (duration) {
+    setTimeout(() => {
+      alert.classList.remove("show");
+      setTimeout(() => {
+        alert.remove();
+      }, 250);
+    }, duration);
+  }
 };

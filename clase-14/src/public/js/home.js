@@ -29,21 +29,20 @@ function goBack() {
 
 async function addToCart(productId) {
   try {
-    const response = await fetch(
-      `/api/carts/${cartId}/products/${productId}`,
-      { method: "POST" }
-    );
+    const response = await fetch(`/api/carts/${cartId}/products/${productId}`, {
+      method: "POST",
+    });
     const result = await response.json();
     if (result.status == "error") {
-      return appendAlert(result.message, "danger");
+      return appendAlert(result.message, "danger", 2500);
     }
-    appendAlert("Product added succesfully", "success");
+    appendAlert("Product added succesfully", "success", 2500);
   } catch (error) {
-    switch (error.name){
+    switch (error.name) {
       case "ReferenceError":
-        return appendAlert("Log in before adding products", "info");
+        return appendAlert("Log in before adding products", "info", 2500);
       default:
-        appendAlert("Couldn't add product", "danger");
+        appendAlert("Couldn't add product", "danger", 2500);
     }
   }
 }
