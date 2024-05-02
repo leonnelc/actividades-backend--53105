@@ -44,16 +44,16 @@ async function registerLocal(req, res) {
   }
   req.session.user = req.user;
   req.session.loggedIn = true;
-  req.session.registerSuccess = true;
+  //req.session.registerSuccess = true;
   res.redirect("/profile");
 }
 async function loginLocal(req, res) {
   if (!req.user) {
     return sendError(res, new Error("Authentication error"), 500);
   }
-  req.session.loginSuccess = true;
   req.session.user = req.user;
   req.session.loggedIn = true;
+  //req.session.loginSuccess = true;
   res.redirect("/profile");
 }
 async function loginGithub(req, res) {}
