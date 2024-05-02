@@ -1,9 +1,11 @@
 const socket = io();
 const errmsg = document.getElementById("errmsg");
-document.getElementById('addProductBtn').addEventListener('click', openAddProductDialog);
+document
+  .getElementById("addProductBtn")
+  .addEventListener("click", openAddProductDialog);
 function openAddProductDialog() {
   Swal.fire({
-    title: 'Add Product',
+    title: "Add Product",
     html: `
       <input id="formTitle" class="swal2-input" placeholder="Title">
       <input id="formDescription" class="swal2-input" placeholder="Description">
@@ -21,35 +23,51 @@ function openAddProductDialog() {
     `,
     focusConfirm: false,
     preConfirm: () => {
-      const title = document.getElementById('formTitle').value;
-      const description = document.getElementById('formDescription').value;
-      const price = parseFloat(document.getElementById('formPrice').value);
-      const thumbnail = document.getElementById('formThumbnails').value;
-      const code = document.getElementById('formCode').value;
-      const stock = parseInt(document.getElementById('formStock').value);
-      const category = document.getElementById('formCategory').value;
-      const status = document.getElementById('formStatus').checked;
+      const title = document.getElementById("formTitle").value;
+      const description = document.getElementById("formDescription").value;
+      const price = parseFloat(document.getElementById("formPrice").value);
+      const thumbnail = document.getElementById("formThumbnails").value;
+      const code = document.getElementById("formCode").value;
+      const stock = parseInt(document.getElementById("formStock").value);
+      const category = document.getElementById("formCategory").value;
+      const status = document.getElementById("formStatus").checked;
 
-      if (!title || !description || isNaN(price) || !code || isNaN(stock) || !category) {
-        Swal.showValidationMessage('Please fill in all required fields');
+      if (
+        !title ||
+        !description ||
+        isNaN(price) ||
+        !code ||
+        isNaN(stock) ||
+        !category
+      ) {
+        Swal.showValidationMessage("Please fill in all required fields");
       }
 
-      return { title, description, price, thumbnail, code, stock, category, status };
-    }
+      return {
+        title,
+        description,
+        price,
+        thumbnail,
+        code,
+        stock,
+        category,
+        status,
+      };
+    },
   }).then((result) => {
     if (result.isConfirmed) {
       const newProduct = result.value;
-      console.log('Adding product:', newProduct);
+      console.log("Adding product:", newProduct);
       addProduct(newProduct);
     }
   });
 }
 
-function deleteProduct(id){
+function deleteProduct(id) {
   errmsg.textContent = "";
   socket.emit("deleteProduct", id);
 }
-function addProduct(){
+function addProduct() {
   errmsg.textContent = "";
   const title = document.getElementById("formTitle");
   const description = document.getElementById("formDescription");
@@ -60,35 +78,32 @@ function addProduct(){
   const category = document.getElementById("formCategory");
   const status = document.getElementById("formStatus");
   const product = {
-    title:title.value,
-    description:description.value,
-    price:price.value,
-    thumbnails:[thumbnails.value],
-    code:code.value,
-    stock:stock.value,
-    category:category.value,
-    status:status.value == "on"
-  }
+    title: title.value,
+    description: description.value,
+    price: price.value,
+    thumbnails: [thumbnails.value],
+    code: code.value,
+    stock: stock.value,
+    category: category.value,
+    status: status.value == "on",
+  };
   socket.emit("addProduct", product);
 }
 const productContainer = document.getElementById("product-container");
 socket.on("productList", (products) => {
   productContainer.innerHTML = "";
 
-  products.forEach(product => {
-
+  products.forEach((product) => {
     const card = document.createElement("div");
     card.classList.add("product-card");
 
     const title = document.createElement("h2");
     title.textContent = product.title;
     card.appendChild(title);
-  
 
     const description = document.createElement("p");
     description.textContent = product.description;
     card.appendChild(description);
-  
 
     const price = document.createElement("span");
     price.textContent = `$${product.price}`;
@@ -96,13 +111,13 @@ socket.on("productList", (products) => {
 
     const br = document.createElement("br");
     card.appendChild(br);
-  
+
     const stock = document.createElement("span");
     stock.textContent = ` Stock: ${product.stock}`;
     card.appendChild(stock);
 
     const thumbnails = document.createElement("div");
-    product.thumbnails.forEach(thumbnail => {
+    product.thumbnails.forEach((thumbnail) => {
       const img = document.createElement("img");
       img.src = thumbnail;
       thumbnails.appendChild(img);
@@ -112,14 +127,14 @@ socket.on("productList", (products) => {
     const deleteButton = document.createElement("button");
     deleteButton.textContent = "Delete";
     deleteButton.onclick = () => {
-        deleteProduct(product._id);
-    }
+      deleteProduct(product._id);
+    };
     card.appendChild(deleteButton);
-  
+
     productContainer.appendChild(card);
   });
-  
-})
+});
 socket.on("error", (message) => {
   errmsg.textContent = message;
-})
+});
+socket.emit("getProductList");
