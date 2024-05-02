@@ -14,6 +14,7 @@ const configObject = {
     GOOGLE_ID: process.env.GOOGLE_ID,
     GOOGLE_SECRET: process.env.GOOGLE_SECRET,
     GOOGLE_CALLBACK: process.env.GOOGLE_CALLBACK,
-    SESSION_SECRET: process.env.SESSION_SECRET
+    SESSION_SECRET: process.env.SESSION_SECRET,
+    DEBUGGING: process.env.DEBUGGING === "true"
 }
 module.exports = configObject;
