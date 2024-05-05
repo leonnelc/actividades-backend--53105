@@ -6,7 +6,7 @@ const {
 } = require("../controllers/AuthController");
 
 Router.get("/", auth, ViewsController.products);
-Router.get("/products", auth, ViewsController.products);
+Router.get("/products", ViewsController.products);
 Router.get(
   "/realtimeproducts",
   auth,
