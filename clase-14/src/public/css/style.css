@@ -200,10 +200,18 @@
 }
 
 .message-content {
+  position: relative;
   background-color: #444444;
+  word-wrap: break-word;
   padding: 10px;
   border-radius: 8px;
   margin-bottom: 10px;
+}
+.message-content span {
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  cursor: pointer
 }
 
 /* Input Styles */

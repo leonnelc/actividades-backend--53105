@@ -1,5 +1,10 @@
 const socket = io();
 const errmsg = document.getElementById("errmsg");
+socket.emit("rtproducts:join");
+socket.on("rtproducts:success", () => {
+  console.log("Success joining to rtproducts");
+  socket.emit("rtproducts:getProductList");
+});
 document
   .getElementById("addProductBtn")
   .addEventListener("click", openAddProductDialog);
@@ -65,7 +70,7 @@ function openAddProductDialog() {
 
 function deleteProduct(id) {
   errmsg.textContent = "";
-  socket.emit("deleteProduct", id);
+  socket.emit("rtproducts:deleteProduct", id);
 }
 function addProduct() {
   errmsg.textContent = "";
@@ -87,10 +92,10 @@ function addProduct() {
     category: category.value,
     status: status.value == "on",
   };
-  socket.emit("addProduct", product);
+  socket.emit("rtproducts:addProduct", product);
 }
 const productContainer = document.getElementById("product-container");
-socket.on("productList", (products) => {
+socket.on("rtproducts:productList", (products) => {
   productContainer.innerHTML = "";
 
   products.forEach((product) => {
@@ -137,4 +142,3 @@ socket.on("productList", (products) => {
 socket.on("error", (message) => {
   errmsg.textContent = message;
 });
-socket.emit("getProductList");

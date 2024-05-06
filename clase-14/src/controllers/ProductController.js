@@ -5,32 +5,48 @@ const {
   buildQueryString,
 } = require("./ControllerUtils");
 const { debugLog } = require("../utils/utils");
-function authAdmin(socket) {
-  const session = socket.request.session;
-  if (session.user.role === "admin") {
-    return;
+function socketHandler(io, socket) {
+  // This should all be done with socket.io namespaces but i couldn't get it working
+  function isInRoom() {
+    return socket.rooms.has("rtproducts");
   }
-  socket.emit("error", "You're not authorized to do that.");
-  socket.disconnect();
-}
-function initialize(io, socket, username) {
-  socket.on("getProductList", async () => {
-    authAdmin(socket);
-    socket.emit("productList", await ProductService.getProducts());
-  });
-  socket.on("deleteProduct", async (pid) => {
-    authAdmin(socket);
-    await ProductService.deleteProduct(pid);
-    io.emit("productList", await ProductService.getProducts());
-  });
-  socket.on("addProduct", async (product) => {
-    authAdmin(socket);
-    let result = await ProductService.addProduct(product);
-    if (result.error) {
-      debugLog(`Error adding product: ${result.message}`);
-      socket.emit("error", `Error adding product: ${result.message}`);
+  socket.on("rtproducts:join", () => {
+    if (!socket?.data?.loggedIn) {
+      return debugLog("Socket not logged in");
     }
-    io.emit("productList", await ProductService.getProducts());
+    if (socket.data.user.role !== "admin") {
+      return debugLog("Socket not authorized");
+    }
+    socket.join("rtproducts");
+    socket.emit("rtproducts:success");
+  });
+  socket.on("rtproducts:getProductList", async () => {
+    if (!isInRoom()) return;
+
+    socket.emit("rtproducts:productList", await ProductService.getProducts());
+  });
+  socket.on("rtproducts:deleteProduct", (pid) => {
+    if (!isInRoom()) return;
+    ProductService.deleteProduct(pid).then(async () => {
+      io.to("rtproducts").emit(
+        "rtproducts:productList",
+        await ProductService.getProducts()
+      );
+    });
+  });
+  socket.on("rtproducts:addProduct", async (product) => {
+    if (!isInRoom()) return;
+    ProductService.addProduct(product)
+      .then(async () => {
+        io.to("rtproducts").emit(
+          "rtproducts:productList",
+          await ProductService.getProducts()
+        );
+      })
+      .catch((err) => {
+        debugLog(`Error adding product: ${err}`);
+        socket.emit("error", `Error adding product: ${err.message}`);
+      });
   });
 }
 
@@ -158,7 +174,7 @@ async function add(req, res, next) {
 }
 
 module.exports = {
-  initialize,
+  socketHandler,
   getProducts,
   getById,
   getByCode,
