@@ -1,9 +1,13 @@
 const dotenv = require("dotenv");
 const program = require("../utils/commander");
 const {mode} = program.opts();
-dotenv.config({
+const config = dotenv.config({
     path: `./.env.${mode}`
 })
+if (config.error) {
+  console.log(`Error loading environment variables`);
+  throw config.error;
+}
 const configObject = {
     PORT: parseInt(process.env.PORT),
     HOSTNAME: process.env.HOSTNAME,
