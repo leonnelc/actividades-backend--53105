@@ -40,8 +40,8 @@ function socketHandler(io, socket) {
       await ChatService.deleteMessage(id);
       io.to("chat").emit("chat:deleteMessage", id);
     } catch (error) {
-      debugLog(err);
-      socket.emit("error", err.message);
+      debugLog(error);
+      socket.emit("error", error.message);
     }
   });
 }
