@@ -3,6 +3,9 @@ const Message = require("../models/Message");
 function processMessage(message) {
   message = message.replace(/(<|>)/gi, "");
   message = message.trim();
+  if (!message) {
+    throw new Error(`Invalid message`);
+  }
   return message;
 }
 async function addMessage(user, message) {

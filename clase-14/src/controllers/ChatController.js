@@ -17,16 +17,20 @@ function socketHandler(io, socket) {
     socket.join("chat");
     socket.emit("chat:success");
   });
-  socket.on("chat:message", (message) => {
+  socket.on("chat:message", async (message) => {
     if (!isInRoom()) return;
     const user = getUser();
-    ChatService.addMessage(user, message).then((addedMsg) => {
+    try {
+      const addedMsg = await ChatService.addMessage(user, message);
       io.to("chat").emit("chat:message", {
         user: addedMsg.user,
         message: addedMsg.message,
         id: addedMsg._id,
       });
-    });
+    } catch (error) {
+      debugLog(error);
+      socket.emit("error", error.message);
+    }
   });
   socket.on("chat:deleteMessage", async (id) => {
     if (!isInRoom()) return;
