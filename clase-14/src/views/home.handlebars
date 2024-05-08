@@ -1,23 +1,23 @@
 <h1 class="display-1 text-center">Products</h1>
-  {{#if loggedIn}}
+{{#if loggedIn}}
 <div class="row mx-auto">
   <div class="col-12 col-md-11 text-end mx-auto">
     <p class="lead text-info">Welcome, {{username}}!</p>
   </div>
   <div class="col-12 col-md-11 text-end mx-auto">
     <p class="lead text-info">Role: {{role}}
-    <a href="logout" class="btn btn-danger">Log out</a>
+      <a href="logout" class="btn btn-danger">Log out</a>
     </p>
   </div>
 </div>
 <script>const cartId = "{{cart}}"</script>
-  {{/if}}
+{{/if}}
 {{#unless invalidPage}}
 <!-- Search filters -->
 <div class="d-inline-flex flex-column ms-5 mb-1">
   <div class="form-floating mb-1 ms-4">
     <select class="form-select" id="sort-selector">
-      <option value="">No</option>
+      <option value>No</option>
       <option value="asc">Ascending</option>
       <option value="desc">Descending</option>
     </select>
@@ -25,67 +25,68 @@
   </div>
   <div class="form-floating mb-1 ms-4">
     <select class="form-select" id="category-selector">
-      <option value="">All categories</option>
+      <option value>All categories</option>
       {{#each categories}}
-        <option value="{{this}}">{{this}}</option>
+      <option value="{{this}}">{{this}}</option>
       {{/each}}
     </select>
     <label for="category-selector">Category:</label>
   </div>
 </div>
 {{#if products}}
-  <!-- Product cards -->
-  <div class="row d-flex justify-content-center m-0 gap-2">
-    {{#each products}}
-      <div
-        class="card col-12 col-sm-5 col-md-3 col-lg-2 m-0 my-3 m-sm-1 m-md-2 bg-light-subtle animation-lift border-0"
-      >
-        {{#each this.thumbnails}}
-          <img
-            src="{{this}}"
-            class="card-img-top"
-            alt="Product image couldn't load"
-            style="width: 100%;height: 25vh;object-fit:fill;"
-          />
-        {{/each}}
-        <div class="card-body">
-          <h5 class="card-title">{{this.title}}</h5>
-          <p class="card-text overflow-auto" style="height: 4.5rem;">{{this.description}}</p>
-        </div>
-        <button
-          class="btn btn-success mb-2 {{#unless this.status}}disabled{{/unless}}"
-          onclick="javascript:addToCart('{{this._id}}')"
-        >{{#if this.status}}Add to cart{{/if}}{{#unless this.status}}Unavailable{{/unless}}</button>
-        <ul class="list-group list-group-flush">
-          <li class="bg-transparent list-group-item">$ {{this.price}}</li>
-          <li class="bg-transparent list-group-item">{{this.stock}}
-            Units available!</li>
-        </ul>
-      </div>
+<!-- Product cards -->
+<div class="row d-flex justify-content-center m-0 gap-2">
+  {{#each products}}
+  <div class="card col-12 col-sm-5 col-md-3 col-lg-2 m-0 my-3 m-sm-1 m-md-2 bg-light-subtle animation-lift border-0">
+    {{#each this.thumbnails}}
+    <img src="{{this}}" class="card-img-top" alt="Product image couldn't load"
+      style="width: 100%;height: 25vh;object-fit:fill;" />
     {{/each}}
+    <div class="card-body">
+      <h5 class="card-title">{{this.title}}</h5>
+      <p class="card-text overflow-auto" style="height: 4.5rem;">{{this.description}}</p>
+    </div>
+    <button class="btn btn-success mb-2 {{#unless this.status}}disabled{{/unless}}"
+      onclick="javascript:addToCart('{{this._id}}')">{{#if this.status}}Add to
+      cart{{/if}}{{#unless this.status}}Unavailable{{/unless}}</button>
+    <ul class="list-group list-group-flush">
+      <li class="bg-transparent list-group-item">$ {{this.price}}</li>
+      <li class="bg-transparent list-group-item">{{this.stock}}
+        Units available!</li>
+    </ul>
   </div>
-{{else}}
-  <!-- Fallback message if there are no products -->
-  <h5 class="text-center">There are currently no products on this page.</h5>
-{{/if}}
-<!-- Pagination controls -->
-<p class="text-center">Page {{page}}/{{totalPages}}</p>
-<div class="d-flex justify-content-center mb-2">
-  {{#if hasPrevPage}}
-    <a href="{{firstLink}}" class="btn btn-secondary m-1">First</a>
-    <a href="{{prevLink}}" class="btn btn-secondary m-1">Previous</a>
-  {{/if}}
-  {{#if hasNextPage}}
-    <a href="{{nextLink}}" class="btn btn-secondary m-1">Next</a>
-    <a href="{{lastLink}}" class="btn btn-secondary m-1">Last</a>
-  {{/if}}
+  {{/each}}
 </div>
 {{else}}
-  {{> message error="true" message="Invalid page specified"}}
-  <div class="row m-auto">
-  <a class="col-2 m-auto btn btn-primary" onclick="javascript:goBack()">Go back to first page</a>
-
-  </div>
+<!-- Fallback message if there are no products -->
+<h5 class="text-center">There are currently no products on this page.</h5>
+{{/if}}
+<!-- Pagination controls -->
+<nav aria-label="Page navigation" class="nav justify-content-center mt-3">
+  <ul class="pagination">
+    {{#if hasPrevPage}}
+    <li class="page-item">
+      <a class="page-link" href="{{prevLink}}" aria-label="Previous">
+        <span aria-hidden="true">{{prevPage}}</span>
+      </a>
+    </li>
+    {{/if}}
+    <li class="page-item"><a class="page-link active" href="#">{{page}}</a></li>
+    {{#if hasNextPage}}
+    <li class="page-item">
+      <a class="page-link" href="{{nextLink}}" aria-label="Next">
+        <span aria-hidden="true">{{nextPage}}</span>
+      </a>
+    </li>
+    {{/if}}
+  </ul>
+</nav>
+{{else}}
+{{> message error="true" message="Invalid page specified"}}
+<div class="row m-auto">
+  <a class="col-2 m-auto btn btn-primary" onclick="javascript:goBack()">Go back
+    to first page</a>
+</div>
 {{/unless}}
 {{>alerts}}
 <script src="js/home.js"></script>
