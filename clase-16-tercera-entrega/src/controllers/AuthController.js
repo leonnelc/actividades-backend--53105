@@ -1,31 +1,17 @@
 const { sendError, sendSuccess } = require("./ControllerUtils");
-function adminAuth(req, res, next) {
-  if (req.session?.user?.role === "admin") {
-    return next();
+function checkRoles(roles, isView) {
+  // roles must be an array of role names (strings)
+  function check(req, res, next) {
+    if (!req.session.user) {
+      return sendError(res, new Error("Not authenticated"), 400, isView);
+    }
+    const role = req.session.user?.role;
+    if (!roles.includes(role)) {
+      return sendError(res, new Error("Not authorized"), 403, isView);
+    }
+    next();
   }
-  return res.status(403).json({ status: "error", message: "Not authorized" });
-}
-function auth(req, res, next) {
-  if (req.session?.loggedIn === true) {
-    return next();
-  }
-  return res
-    .status(400)
-    .json({ status: "error", message: "Not authenticated" });
-}
-function viewsAdminAuth(req, res, next) {
-  if (req.session?.loggedIn === true && req.session?.user?.role === "admin") {
-    return next();
-  }
-  return res
-    .status(403)
-    .render("message", { error: true, message: "Not authorized" });
-}
-function viewsAuth(req, res, next) {
-  if (req.session?.loggedIn === true) {
-    return next();
-  }
-  return res.redirect("/login");
+  return check;
 }
 
 async function logout(req, res) {
@@ -80,8 +66,5 @@ module.exports = {
   callbackGithub,
   loginGoogle,
   callbackGoogle,
-  adminAuth,
-  auth,
-  viewsAuth,
-  viewsAdminAuth,
+  checkRoles,
 };

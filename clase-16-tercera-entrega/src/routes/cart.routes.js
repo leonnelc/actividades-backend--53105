@@ -1,14 +1,17 @@
 const Router = require("express").Router();
-const { adminAuth, auth } = require("../controllers/AuthController");
+const { checkRoles } = require("../controllers/AuthController");
 const CartController = require("../controllers/CartController");
 
-Router.get("/", adminAuth, CartController.getCarts);
-Router.get("/:cid", auth, CartController.getCartById);
-Router.get("/:cid/products/", auth, CartController.getProducts);
-Router.post("/", adminAuth, CartController.addCart);
-Router.post("/:cid/products/:pid", auth, CartController.addProduct);
-Router.delete("/:cid", auth, CartController.clearCart);
-Router.delete("/:cid/products/:pid", auth, CartController.removeProduct);
-Router.put("/:cid", auth, CartController.updateQuantityMany);
-Router.put("/:cid/products/:pid", auth, CartController.updateQuantity);
+const requireAdmin = checkRoles(["admin"]);
+const requireAuth = checkRoles(["user", "admin"]);
+
+Router.get("/", requireAdmin, CartController.getCarts);
+Router.get("/:cid", requireAuth, CartController.getCartById);
+Router.get("/:cid/products/", requireAuth, CartController.getProducts);
+Router.post("/", requireAdmin, CartController.addCart);
+Router.post("/:cid/products/:pid", requireAuth, CartController.addProduct);
+Router.delete("/:cid", requireAuth, CartController.clearCart);
+Router.delete("/:cid/products/:pid", requireAuth, CartController.removeProduct);
+Router.put("/:cid", requireAuth, CartController.updateQuantityMany);
+Router.put("/:cid/products/:pid", requireAuth, CartController.updateQuantity);
 module.exports = Router;

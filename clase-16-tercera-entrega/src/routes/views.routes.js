@@ -1,25 +1,19 @@
 const Router = require("express").Router();
 const ViewsController = require("../controllers/ViewsController");
-const {
-  viewsAdminAuth: adminAuth,
-  viewsAuth: auth,
-} = require("../controllers/AuthController");
+const { checkRoles } = require("../controllers/AuthController");
+const requireAuth = checkRoles(["user", "admin"], true);
+const requireAdmin = checkRoles(["admin"], true);
 
-Router.get("/", auth, ViewsController.products);
+Router.get("/", requireAuth, ViewsController.products);
 Router.get("/products", ViewsController.products);
-Router.get(
-  "/realtimeproducts",
-  auth,
-  adminAuth,
-  ViewsController.realTimeProducts
-);
-Router.get("/carts/:cid", auth, ViewsController.carts);
-Router.get("/carts", auth, ViewsController.carts);
-Router.get("/cart", auth, ViewsController.carts);
+Router.get("/realtimeproducts", requireAdmin, ViewsController.realTimeProducts);
+Router.get("/carts/:cid", requireAuth, ViewsController.carts);
+Router.get("/carts", requireAuth, ViewsController.carts);
+Router.get("/cart", requireAuth, ViewsController.carts);
 Router.get("/login", ViewsController.login);
 Router.get("/register", ViewsController.register);
-Router.get("/profile", auth, ViewsController.profile);
+Router.get("/profile", requireAuth, ViewsController.profile);
 Router.get("/logout", ViewsController.logout);
-Router.get("/chat", auth, ViewsController.chat);
+Router.get("/chat", requireAuth, ViewsController.chat);
 
 module.exports = Router;

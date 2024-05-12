@@ -1,8 +1,11 @@
 const { debugLog } = require("../utils/utils");
-function sendError(res, error, status) {
+function sendError(res, error, status, isView) {
   // TODO: implement more custom messages for specific errors like CastError
   debugLog(error);
   function send(status, message) {
+    if (isView) {
+      return res.status(status).render("message", { error: true, message });
+    }
     res.status(status).json({ status: "error", message });
   }
   switch (error.name) {
