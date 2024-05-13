@@ -1,4 +1,5 @@
 const { sendError, sendSuccess } = require("./ControllerUtils");
+const UserDTO = require("../dtos/UserDTO");
 function checkRoles(roles, isView) {
   // roles must be an array of role names (strings)
   function check(req, res, next) {
@@ -22,7 +23,8 @@ async function current(req, res) {
   if (!req.session.loggedIn) {
     return sendError(res, new Error("Not logged in"), 400);
   }
-  sendSuccess(res, { session: req.session.user });
+  const user = req.session.user;
+  sendSuccess(res, { user });
 }
 async function registerLocal(req, res) {
   if (!req.user) {

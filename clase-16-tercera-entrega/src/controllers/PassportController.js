@@ -1,5 +1,6 @@
 const UserService = require("../services/UserService");
 const validator = require("email-validator");
+const UserDTO = require("../dtos/UserDTO");
 function invalidRegister(req, done, message) {
   req.session.invalidRegister = { message };
   done(null, false);
@@ -46,7 +47,7 @@ async function registerLocal(req, username, password, done) {
       password,
     });
 
-    return done(null, UserService.trimUserData(user));
+    return done(null, new UserDTO(user));
   } catch (error) {
     req.session.invalidRegister = { message: error.message };
     return done(null, false);
@@ -63,7 +64,7 @@ async function loginLocal(req, email, password, done) {
       return invalidLogin(req, done, "Invalid password");
     }
 
-    return done(null, UserService.trimUserData(user));
+    return done(null, new UserDTO(user));
   } catch (error) {
     req.session.invalidLogin = { message: error.message };
     return done(null, false);
@@ -86,7 +87,7 @@ async function loginGithub(req, accessToken, refreshToken, profile, done) {
       password: null,
       role: "user",
     });
-    return done(null, UserService.trimUserData(user));
+    return done(null, new UserDTO(user));
   } catch (error) {
     req.session.invalidLogin = { message: error.message };
     return done(null, false);
@@ -105,17 +106,18 @@ async function loginGoogle(req, accessToken, refreshToken, profile, done) {
       password: null,
       role: "user",
     });
-    return done(null, UserService.trimUserData(user));
+    return done(null, new UserDTO(user));
   } catch (error) {
     req.session.invalidLogin = { message: error.message };
     return done(null, false);
   }
 }
 function serialize(user, done) {
-  done(null, UserService.serialize(user));
+  done(null, user.id);
 }
 async function deserialize(id, done) {
-  done(null, await UserService.deserialize(id));
+  const user = new UserDTO(await UserService.findById(id));
+  done(null, user);
 }
 module.exports = {
   loginLocal,
