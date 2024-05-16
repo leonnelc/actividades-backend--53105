@@ -36,6 +36,7 @@ async function addProduct(cid, pid, quantity) {
     cart.items.set(pid, { product, quantity });
   }
   await cart.save();
+  return cart;
 }
 async function removeProduct(cid, pid) {
   const cart = await Cart.findById(cid);
@@ -47,13 +48,7 @@ async function removeProduct(cid, pid) {
   }
   cart.items.delete(pid);
   await cart.save();
-}
-async function getProducts(cid) {
-  const cart = await Cart.findById(cid);
-  if (!cart) {
-    throw new Error(`Cart id ${cid} not found`);
-  }
-  return [...cart.items.values];
+  return cart;
 }
 async function clearCart(cid) {
   const cart = await Cart.findById(cid);
@@ -77,6 +72,7 @@ async function updateQuantity(cid, pid, quantity) {
     cart.items.delete(pid);
   }
   await cart.save();
+  return cart;
 }
 async function updateQuantityMany(cid, items) {
   const cart = await Cart.findById(cid);
@@ -100,13 +96,13 @@ async function updateQuantityMany(cid, items) {
     cart.items.get(obj.product).quantity = obj.quantity;
   }
   await cart.save();
+  return cart;
 }
 
 module.exports = {
   getCarts,
   addCart,
   addProduct,
-  getProducts,
   getCartById,
   clearCart,
   removeProduct,

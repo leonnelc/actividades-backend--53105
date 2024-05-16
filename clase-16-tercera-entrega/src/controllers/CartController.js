@@ -1,5 +1,6 @@
 const CartService = require("../services/CartService");
 const { sendError, sendSuccess } = require("./ControllerUtils");
+const CartDTO = require("../dtos/CartDTO");
 function validateCartOwner(req, cid) {
   const user = req.session.user;
   if (user.cart == cid || user.role == "admin") {
@@ -10,7 +11,10 @@ function validateCartOwner(req, cid) {
 
 async function getCarts(req, res) {
   try {
-    sendSuccess(res, { carts: await CartService.getCarts() });
+    const carts = (await CartService.getCarts()).map(
+      (cart) => new CartDTO(cart)
+    );
+    sendSuccess(res, { carts });
   } catch (error) {
     sendError(res, error);
   }
@@ -18,7 +22,8 @@ async function getCarts(req, res) {
 async function addCart(req, res) {
   try {
     const owner = req.query.owner;
-    sendSuccess(res, { cid: await CartService.addCart(owner) });
+    const cart = new CartDTO(await CartService.addCart(owner));
+    sendSuccess(res, { cart });
   } catch (error) {
     sendError(res, error);
   }
@@ -34,9 +39,8 @@ async function addProduct(req, res) {
     if (!Number.isInteger(quantity) || quantity <= 0) {
       throw new Error("Invalid quantity query, must be a positive integer");
     }
-    sendSuccess(res, {
-      new_quantity: await CartService.addProduct(cid, pid, quantity),
-    });
+    const cart = new CartDTO(await CartService.addProduct(cid, pid, quantity));
+    sendSuccess(res, { cart });
   } catch (error) {
     sendError(res, error);
   }
@@ -45,7 +49,8 @@ async function getCartById(req, res) {
   try {
     const { cid } = req.params;
     validateCartOwner(req, cid);
-    sendSuccess(res, { cart: await CartService.getCartById(cid) });
+    const cart = new CartDTO(await CartService.getCartById(cid));
+    sendSuccess(res, { cart });
   } catch (error) {
     sendError(res, error);
   }
@@ -55,7 +60,7 @@ async function clearCart(req, res) {
     const { cid } = req.params;
     validateCartOwner(req, cid);
     await CartService.clearCart(cid);
-    sendSuccess(res, { message: "Cart cleared" });
+    sendSuccess(res, {});
   } catch (error) {
     sendError(res, error);
   }
@@ -64,8 +69,8 @@ async function removeProduct(req, res) {
   try {
     const { cid, pid } = req.params;
     validateCartOwner(req, cid);
-    await CartService.removeProduct(cid, pid);
-    sendSuccess(res, { message: "Product removed succesfully" });
+    const cart = new CartDTO(await CartService.removeProduct(cid, pid));
+    sendSuccess(res, { cart });
   } catch (error) {
     sendError(res, error);
   }
@@ -78,8 +83,10 @@ async function updateQuantity(req, res) {
     if (!Number.isInteger(quantity)) {
       throw new Error("Quantity not specified or isn't an integer");
     }
-    await CartService.updateQuantity(cid, pid, quantity);
-    sendSuccess(res, { message: "Quantity updated succesfully" });
+    const cart = new CartDTO(
+      await CartService.updateQuantity(cid, pid, quantity)
+    );
+    sendSuccess(res, { cart });
   } catch (error) {
     sendError(res, error);
   }
@@ -93,8 +100,10 @@ async function updateQuantityMany(req, res) {
         "Request body must be an array containing objects in the format {product:productId, quantity:Number}"
       );
     }
-    await CartService.updateQuantityMany(cid, req.body);
-    sendSuccess(res, { message: "Products updated succesfully" });
+    const cart = new CartDTO(
+      await CartService.updateQuantityMany(cid, req.body)
+    );
+    sendSuccess(res, { cart });
   } catch (error) {
     sendError(res, error);
   }
@@ -103,7 +112,8 @@ async function getProducts(req, res) {
   try {
     const { cid } = req.params;
     validateCartOwner(req, cid);
-    sendSuccess(res, await CartService.getProducts(cid));
+    const products = new CartDTO(await CartService.getCartById(cid)).products;
+    sendSuccess(res, { products });
   } catch (error) {
     sendError(res, error);
   }
