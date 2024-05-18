@@ -32,7 +32,7 @@ async function findOrCreate({
       password,
       age,
       role,
-      cart: await addCart(email),
+      cart: (await addCart(email))._id,
     });
   }
   return user;
@@ -45,7 +45,7 @@ async function add({ first_name, last_name, email, age, role, password }) {
     age,
     role,
     password: hash(password),
-    cart: await addCart(email),
+    cart: (await addCart(email))._id,
   });
   if (!user) {
     throw new Error("Error creating user");
