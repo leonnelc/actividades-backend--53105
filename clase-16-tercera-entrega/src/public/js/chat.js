@@ -3,11 +3,36 @@ const socket = io();
 const chatInput = document.getElementById("chat-input");
 const message = document.getElementById("message");
 const chatMessages = document.getElementById("chat-messages");
+let currentUser;
 socket.emit("chat:join");
 socket.on("chat:success", () => {
   console.log("Joined chat succesfully");
   appendAlert("Joined chat", "success", 2500);
+  socket.emit("getUser");
 });
+socket.on("user", (user) => {
+  currentUser = user;
+  checkMessages();
+});
+function checkMessages() {
+  // iterates every message to check if it can be deleted
+  // if the message can be deleted then it adds a delete button to the message
+  for (let msg of document.getElementsByClassName("message")) {
+    const username = msg.getAttribute("data-user");
+    if (!canDeleteMessage(username)) {
+      continue;
+    }
+    const contentElement = msg.querySelector(".message-content");
+    const deleteButton = document.createElement("span");
+    deleteButton.onclick = () => {
+      socket.emit("chat:deleteMessage", msg.id);
+    };
+    const deleteBtnIcon = document.createElement("i");
+    deleteBtnIcon.classList.add("bi", "bi-trash");
+    deleteButton.appendChild(deleteBtnIcon);
+    contentElement.appendChild(deleteButton);
+  }
+}
 
 chatInput.addEventListener("keyup", (event) => {
   if (event.key == "Enter") {
@@ -18,6 +43,12 @@ function sendMessage() {
   let msg = message.value.trim();
   message.value = "";
   socket.emit("chat:message", msg);
+}
+function canDeleteMessage(user) {
+  if (user === currentUser?.email || currentUser?.role === "admin") {
+    return true;
+  }
+  return false;
 }
 function addMessage(username, message, id) {
   const messageElement = document.createElement("div");
@@ -45,7 +76,7 @@ function addMessage(username, message, id) {
   deleteBtnIcon.classList.add("bi", "bi-trash");
   deleteButton.appendChild(deleteBtnIcon);
   contentElement.appendChild(messageParagraph);
-  contentElement.appendChild(deleteButton);
+  if (canDeleteMessage(username)) contentElement.appendChild(deleteButton);
   userElement.appendChild(usernameSpan);
   messageElement.appendChild(userElement);
   messageElement.appendChild(contentElement);
