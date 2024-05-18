@@ -12,6 +12,9 @@ module.exports = (httpServer, sessionMiddleware) => {
   io.on("connection", async (socket) => {
     debugLog("User connected");
     setSocketData(socket);
+    socket.on("getUser", () => {
+      socket.emit("user", socket.data.user);
+    });
     ChatController.socketHandler(io, socket); // real time chat
     ProductController.socketHandler(io, socket); // real time products
     socket.on("disconnect", () => {
