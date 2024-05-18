@@ -4,7 +4,7 @@ const { checkRoles } = require("../controllers/AuthController");
 const requireAuth = checkRoles(["user", "admin"], true);
 const requireAdmin = checkRoles(["admin"], true);
 
-Router.get("/", requireAuth, ViewsController.products);
+Router.get("/", ViewsController.products);
 Router.get("/products", ViewsController.products);
 Router.get("/realtimeproducts", requireAdmin, ViewsController.realTimeProducts);
 Router.get("/carts/:cid", requireAuth, ViewsController.carts);
