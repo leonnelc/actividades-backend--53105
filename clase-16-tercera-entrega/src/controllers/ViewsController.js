@@ -1,11 +1,7 @@
 const CartService = require("../services/CartService");
 const ProductService = require("../services/ProductService");
 const ChatService = require("../services/ChatService");
-const {
-  sendError,
-  sendSuccess,
-  buildQueryString,
-} = require("./ControllerUtils");
+const { sendError, buildQueryString } = require("./ControllerUtils");
 
 async function realTimeProducts(req, res) {
   try {
@@ -132,7 +128,15 @@ async function carts(req, res) {
       });
     }
     if (!cid) {
-      throw new Error(`No valid cart specified`);
+      if (req.session.user.role !== "admin") {
+        throw new Error("Cart not assigned, contact an administrator");
+      }
+      const carts = [];
+      for (let cart of await CartService.getCarts()) {
+        carts.push({ ...cart._doc });
+      }
+      console.log(carts);
+      return res.render("cartSelector", { carts });
     }
     const cart = await CartService.getCartById(cid);
     const products = [];
@@ -148,7 +152,7 @@ async function carts(req, res) {
       products,
     });
   } catch (error) {
-    sendError(res, error, 404);
+    sendError(res, error, 404, true);
   }
 }
 async function chat(req, res) {
