@@ -18,9 +18,12 @@ function socketHandler(io, socket) {
     socket.emit("chat:success");
   });
   socket.on("chat:message", async (message) => {
-    if (!isInRoom()) return;
-    const user = getUser();
     try {
+      if (!isInRoom()) throw new Error("User not in room");
+      const user = getUser();
+      if (user.role === "admin") {
+        throw new Error("Admin can't send messages");
+      }
       const addedMsg = await ChatService.addMessage(user, message);
       io.to("chat").emit("chat:message", {
         user: addedMsg.user,
