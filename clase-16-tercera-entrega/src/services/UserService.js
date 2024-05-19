@@ -59,6 +59,13 @@ async function userExists(email) {
   }
   return true;
 }
+async function findByCart(cid) {
+  const user = await User.findOne({ cart: cid });
+  if (!user) {
+    throw new Error(`User with cart id ${cid} not found`);
+  }
+  return user;
+}
 
 module.exports = {
   findByEmail,
@@ -67,4 +74,5 @@ module.exports = {
   userExists,
   add,
   isValidPassword,
+  findByCart,
 };

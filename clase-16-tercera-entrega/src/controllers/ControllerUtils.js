@@ -2,11 +2,11 @@ const { debugLog } = require("../utils/utils");
 function sendError(res, error, status, isView) {
   // TODO: implement more custom messages for specific errors like CastError
   debugLog(error);
-  function send(status, message) {
+  function send(status, message, optionalData) {
     if (isView) {
       return res.status(status).render("message", { error: true, message });
     }
-    res.status(status).json({ status: "error", message });
+    res.status(status).json({ status: "error", message, ...optionalData });
   }
   switch (error.name) {
     case "CastError":
@@ -28,6 +28,12 @@ function sendError(res, error, status, isView) {
         default:
           send(500, `Database error`);
       }
+      break;
+    case "NotEnoughStock":
+      send(500, `Items out of stock`, { items: error.items });
+      break;
+    case "NoPurchasedItems":
+      send(500, error.message, { items: error.items });
       break;
     default:
       send(status ?? 500, error.message);

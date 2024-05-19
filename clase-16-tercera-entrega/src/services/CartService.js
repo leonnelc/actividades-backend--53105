@@ -1,5 +1,6 @@
 const Cart = require("../models/Cart");
 const Product = require("../models/Product"); // needed to add products to cart
+const mongoose = require("mongoose");
 
 async function getCarts() {
   return await Cart.find();
@@ -98,6 +99,63 @@ async function updateQuantityMany(cid, items) {
   await cart.save();
   return cart;
 }
+async function purchase(cid) {
+  const cart = await getCartById(cid);
+  return await purchaseCart(cart);
+}
+async function purchaseCart(cart) {
+  // uses a cart document as argument, not cart id
+  if (cart.items.size === 0) {
+    throw new Error(`Can't purchase an empty cart`);
+  }
+  const errors = [];
+  const purchased = [];
+  const products = [];
+  cart.items.forEach(async (item, productId) => {
+    if (item.product.stock < item.quantity) {
+      errors.push({
+        id: productId,
+        stock: item.product.stock,
+        requiredStock: item.quantity,
+      });
+      cart.total =
+        Math.round(
+          (cart.total - (item.product.price * item.quantity + Number.EPSILON)) *
+            100
+        ) / 100; // magic formula to substract and round perfectly to 2 decimal places
+      return;
+    }
+    item.product.stock -= item.quantity;
+    purchased.push({ id: productId, quantity: item.quantity });
+    products.push(item.product);
+    cart.items.delete(productId);
+  });
+  if (purchased.length === 0) {
+    const error = new Error(`No items can be purchased`);
+    error.name = "NoPurchasedItems";
+    error.items = errors;
+    throw error;
+  }
+  /* uncomment this to throw error when an item is out of stock
+  if (errors.length > 0) {
+    const err = new Error(`Not enough stock`);
+    err.name = "NotEnoughStock";
+    err.items = errors;
+    throw err;
+  }*/
+  const session = await mongoose.startSession();
+  try {
+    session.withTransaction(async () => {
+      products.forEach(async (product) => await product.save());
+      await cart.save();
+    });
+  } catch (error) {
+    throw error;
+  } finally {
+    session.endSession();
+  }
+  return { not_purchased: errors, purchased };
+}
 
 module.exports = {
   getCarts,
@@ -108,4 +166,6 @@ module.exports = {
   removeProduct,
   updateQuantity,
   updateQuantityMany,
+  purchase,
+  purchaseCart,
 };

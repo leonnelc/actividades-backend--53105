@@ -1,12 +1,20 @@
 const CartService = require("../services/CartService");
+const TicketService = require("../services/TicketService");
+const UserService = require("../services/UserService");
 const { sendError, sendSuccess } = require("./ControllerUtils");
 const CartDTO = require("../dtos/CartDTO");
-function validateCartOwner(req, cid) {
+function checkOwnsCartOrIsAdmin(req, cid) {
   const user = req.session.user;
   if (user.cart == cid || user.role == "admin") {
     return;
   }
   throw new Error("Not authorized to access this cart");
+}
+function checkOwnsCart(req, cid) {
+  const user = req.session.user;
+  if (user.cart !== cid) {
+    throw new Error("User doesn't own cart");
+  }
 }
 
 async function getCarts(req, res) {
@@ -31,7 +39,7 @@ async function addCart(req, res) {
 async function addProduct(req, res) {
   try {
     const { cid, pid } = req.params;
-    validateCartOwner(req, cid);
+    checkOwnsCartOrIsAdmin(req, cid);
     let quantity = parseInt(req.query.quantity);
     if (!req.query.quantity) {
       quantity = 1;
@@ -48,7 +56,7 @@ async function addProduct(req, res) {
 async function getCartById(req, res) {
   try {
     const { cid } = req.params;
-    validateCartOwner(req, cid);
+    checkOwnsCartOrIsAdmin(req, cid);
     const cart = new CartDTO(await CartService.getCartById(cid));
     sendSuccess(res, { cart });
   } catch (error) {
@@ -58,7 +66,7 @@ async function getCartById(req, res) {
 async function clearCart(req, res) {
   try {
     const { cid } = req.params;
-    validateCartOwner(req, cid);
+    checkOwnsCartOrIsAdmin(req, cid);
     await CartService.clearCart(cid);
     sendSuccess(res, {});
   } catch (error) {
@@ -68,7 +76,7 @@ async function clearCart(req, res) {
 async function removeProduct(req, res) {
   try {
     const { cid, pid } = req.params;
-    validateCartOwner(req, cid);
+    checkOwnsCartOrIsAdmin(req, cid);
     const cart = new CartDTO(await CartService.removeProduct(cid, pid));
     sendSuccess(res, { cart });
   } catch (error) {
@@ -78,7 +86,7 @@ async function removeProduct(req, res) {
 async function updateQuantity(req, res) {
   try {
     const { cid, pid } = req.params;
-    validateCartOwner(req, cid);
+    checkOwnsCartOrIsAdmin(req, cid);
     const quantity = parseInt(req.body.quantity);
     if (!Number.isInteger(quantity)) {
       throw new Error("Quantity not specified or isn't an integer");
@@ -94,7 +102,7 @@ async function updateQuantity(req, res) {
 async function updateQuantityMany(req, res) {
   try {
     const { cid } = req.params;
-    validateCartOwner(req, cid);
+    checkOwnsCartOrIsAdmin(req, cid);
     if (!Array.isArray(req.body)) {
       throw new Error(
         "Request body must be an array containing objects in the format {product:productId, quantity:Number}"
@@ -111,9 +119,34 @@ async function updateQuantityMany(req, res) {
 async function getProducts(req, res) {
   try {
     const { cid } = req.params;
-    validateCartOwner(req, cid);
+    checkOwnsCartOrIsAdmin(req, cid);
     const products = new CartDTO(await CartService.getCartById(cid)).products;
     sendSuccess(res, { products });
+  } catch (error) {
+    sendError(res, error);
+  }
+}
+function validatePaymentInfo(amount) {
+  return; // dummy function that should be implemented later
+}
+async function purchase(req, res) {
+  try {
+    const { cid, paymentData } = req.params; // paymentData is not implemented yet
+    checkOwnsCart(req, cid);
+    const cart = await CartService.getCartById(cid);
+    const user = await UserService.findByCart(cid);
+    validatePaymentInfo(cart.total, user, paymentData); // doesn't do anything yet
+    const { purchased, not_purchased } = await CartService.purchaseCart(cart);
+    const ticket = await TicketService.addTicket({
+      purchaser: user.email,
+      amount: cart.total,
+      purchase_datetime: new Date(),
+    });
+    sendSuccess(res, {
+      ticket,
+      purchased,
+      not_purchased: not_purchased.length > 0 ? not_purchased : undefined,
+    });
   } catch (error) {
     sendError(res, error);
   }
@@ -129,4 +162,5 @@ module.exports = {
   clearCart,
   updateQuantity,
   updateQuantityMany,
+  purchase,
 };
