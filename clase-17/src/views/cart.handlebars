@@ -5,7 +5,7 @@
         {{#if hasProducts}}
         {{#each products}}
         <div class="col-md-4 mb-3">
-            <div class="card" id="{{this.product._id}}">
+            <div class="card" id="{{this.product._id}}" data-title="{{this.product.title}}">
                 <div class="card-body">
                     <h5 class="card-title">{{this.product.title}}</h5>
                     <p class="card-text" id="price">Price: <span
@@ -33,7 +33,8 @@
             <a href="/products" class="btn btn-primary">Continue Shopping</a>
         </div>
         <div class="col-md-6 text-right">
-            <button type="button" class="btn btn-danger"
+            <button type="button" class="btn btn-success mt-1" onclick="javascript:purchaseCart('{{cid}}')">Purchase Cart</button>
+            <button type="button" class="btn btn-danger mt-1"
                 onclick="javascript:clearCart()">Clear Cart</button>
         </div>
         {{else}}
@@ -50,5 +51,32 @@
     <a href="/products" class="btn btn-primary">Continue Shopping</a>
 </div>
 {{/if}}
+<!-- modal -->
+<div class="modal fade" id="purchaseModal" tabindex="-1" role="dialog" aria-labelledby="purchaseModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="purchaseModalLabel">Purchase Details</h5>
+      </div>
+      <div class="modal-body">
+        <p><strong>Ticket Code:</strong> <span id="ticketCode"></span></p>
+        <p><strong>Purchase Date:</strong> <span id="purchaseDate"></span></p>
+        <p><strong>Amount:</strong> <span id="purchaseAmount"></span></p>
+        <p><strong>Purchaser:</strong> <span id="purchaser"></span></p>
+        <div id="purchasedItems">
+            <h5>Purchased items:</h5>
+            <ul id="purchasedItemsList"></ul>
+        </div>
+        <div id="notPurchasedItems">
+          <h5>Not Purchased Items:</h5>
+          <ul id="notPurchasedItemsList"></ul>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
 {{>alerts}}
 <script src="/js/cart.js"></script>
