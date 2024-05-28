@@ -1,6 +1,7 @@
 const Cart = require("../models/Cart");
-const Product = require("../models/Product"); // needed to add products to cart
+const { getProductById } = require("./ProductService"); // needed to add products to cart
 const mongoose = require("mongoose");
+const CartError = require("./errors/api/CartError");
 
 async function getCarts() {
   return await Cart.find();
@@ -14,21 +15,17 @@ async function addCart(owner) {
 async function getCartById(cid) {
   const cart = await Cart.findById(cid);
   if (!cart) {
-    throw new Error(`Cart id ${cid} not found`);
+    throw new CartError(`Cart id ${cid} not found`, { name: "NotFound" });
   }
   return cart;
 }
 async function addProduct(cid, pid, quantity) {
-  const cart = await Cart.findById(cid);
-  if (!cart) {
-    throw new Error(`Cart id ${cid} not found`);
-  }
-  const product = await Product.findById(pid);
-  if (!product) {
-    throw new Error(`Product id ${pid} not found`);
-  }
+  const cart = await getCartById(cid);
+  const product = await getProductById(pid);
   if (!product.status) {
-    throw new Error(`Product is not available`);
+    throw new CartError(`Product is not available`, {
+      name: "ProductNotAvailable",
+    });
   }
   const cartItem = cart.items.get(pid);
   if (cartItem) {
@@ -40,32 +37,27 @@ async function addProduct(cid, pid, quantity) {
   return cart;
 }
 async function removeProduct(cid, pid) {
-  const cart = await Cart.findById(cid);
-  if (!cart) {
-    throw new Error(`Cart id ${cid} not found`);
-  }
+  const cart = await getCartById(cid);
   if (!cart.items.has(pid)) {
-    throw new Error(`Product id ${pid} not found in cart id ${cid}`);
+    throw new CartError(`Product id ${pid} not found in cart id ${cid}`, {
+      name: "ProductNotFound",
+    });
   }
   cart.items.delete(pid);
   await cart.save();
   return cart;
 }
 async function clearCart(cid) {
-  const cart = await Cart.findById(cid);
-  if (!cart) {
-    throw new Error(`Cart id ${cid} not found`);
-  }
+  const cart = await getCartById(cid);
   cart.items = {};
   await cart.save();
 }
 async function updateQuantity(cid, pid, quantity) {
-  const cart = await Cart.findById(cid);
-  if (!cart) {
-    throw new Error(`Cart id ${cid} not found`);
-  }
+  const cart = await getCartById(cid);
   if (!cart.items.has(pid)) {
-    throw new Error(`Product id ${pid} not found in cart id ${cid}`);
+    throw new CartError(`Product id ${pid} not found in cart id ${cid}`, {
+      name: "ProductNotFound",
+    });
   }
   if (quantity > 0) {
     cart.items.get(pid).quantity = quantity;
@@ -76,19 +68,19 @@ async function updateQuantity(cid, pid, quantity) {
   return cart;
 }
 async function updateQuantityMany(cid, items) {
-  const cart = await Cart.findById(cid);
-  if (!cart) {
-    throw new Error(`Cart id ${cid} not found`);
-  }
+  const cart = await getCartById(cid);
 
   for (let obj of items) {
     if (obj.product == null || obj.quantity == null) {
-      throw new Error(
+      throw new CartError(
         `Objects must contain the properties product and quantity`
       );
     }
     if (!cart.items.has(obj.product)) {
-      throw new Error(`Product id ${obj.product} not found in cart id ${cid}`);
+      throw new CartError(
+        `Product id ${obj.product} not found in cart id ${cid}`,
+        { name: "ProductNotFound" }
+      );
     }
     if (obj.quantity <= 0) {
       cart.items.delete(obj.product);
@@ -106,7 +98,7 @@ async function purchase(cid) {
 async function purchaseCart(cart) {
   // uses a cart document as argument, not cart id
   if (cart.items.size === 0) {
-    throw new Error(`Can't purchase an empty cart`);
+    throw new CartError(`Can't purchase an empty cart`, { name: "EmptyCart" });
   }
   const errors = [];
   const purchased = [];
@@ -131,18 +123,21 @@ async function purchaseCart(cart) {
     cart.items.delete(productId);
   });
   if (purchased.length === 0) {
-    const error = new Error(`No items can be purchased`);
-    error.name = "NoPurchasedItems";
-    error.items = errors;
-    throw error;
+    throw new CartError(`No items can be purchased`, {
+      name: "NoPurchasedItems",
+      data: {
+        not_purchased: errors,
+      },
+    });
   }
-  /* uncomment this to throw error when an item is out of stock
+  /*uncomment this to throw error when an item is out of stock
   if (errors.length > 0) {
-    const err = new Error(`Not enough stock`);
-    err.name = "NotEnoughStock";
-    err.items = errors;
-    throw err;
-  }*/
+    throw new CartError(`Not enough stock`, {
+      name: "NotEnoughStock",
+      data: { not_purchased: errors },
+    });
+  }
+  */
   const session = await mongoose.startSession();
   try {
     session.withTransaction(async () => {

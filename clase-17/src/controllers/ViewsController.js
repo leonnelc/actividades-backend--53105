@@ -1,40 +1,49 @@
 const CartService = require("../services/CartService");
 const ProductService = require("../services/ProductService");
 const ChatService = require("../services/ChatService");
-const { sendError, buildQueryString } = require("./ControllerUtils");
+const { buildQueryString } = require("./ControllerUtils");
+const ViewsError = require("../services/errors/ViewError");
 
-async function realTimeProducts(req, res) {
+async function realTimeProducts(req, res, next) {
   try {
     res.render("realTimeProducts", { title: "Real time products" });
   } catch (error) {
-    sendError(res, error);
+    next(new ViewsError(error.message));
   }
 }
-async function login(req, res) {
-  const { loggedIn, loginSuccess, user } = req.session;
-  const errorMessage = req.session?.invalidLogin?.message;
-  req.session.loginSuccess = undefined;
-  req.session.invalidLogin = undefined;
-  res.render("login", {
-    loggedIn,
-    username: user?.first_name,
-    errorMessage,
-    loginSuccess,
-  });
+async function login(req, res, next) {
+  try {
+    const { loggedIn, loginSuccess, user } = req.session;
+    const errorMessage = req.session?.invalidLogin?.message;
+    req.session.loginSuccess = undefined;
+    req.session.invalidLogin = undefined;
+    res.render("login", {
+      loggedIn,
+      username: user?.first_name,
+      errorMessage,
+      loginSuccess,
+    });
+  } catch (error) {
+    next(new ViewsError(error.message));
+  }
 }
-async function register(req, res) {
-  const { loggedIn, registerSuccess, user } = req.session;
-  const errorMessage = req.session?.invalidRegister?.message;
-  req.session.invalidRegister = undefined;
-  req.session.registerSuccess = undefined;
-  res.render("register", {
-    loggedIn,
-    username: user?.first_name,
-    errorMessage,
-    registerSuccess,
-  });
+async function register(req, res, next) {
+  try {
+    const { loggedIn, registerSuccess, user } = req.session;
+    const errorMessage = req.session?.invalidRegister?.message;
+    req.session.invalidRegister = undefined;
+    req.session.registerSuccess = undefined;
+    res.render("register", {
+      loggedIn,
+      username: user?.first_name,
+      errorMessage,
+      registerSuccess,
+    });
+  } catch (error) {
+    next(new ViewsError(error.message));
+  }
 }
-async function products(req, res) {
+async function products(req, res, next) {
   try {
     let limit, page, sort, query;
     req.query.limit != undefined
@@ -50,10 +59,8 @@ async function products(req, res) {
       try {
         query = JSON.parse(req.query.query);
       } catch (error) {
-        return sendError(
-          res,
-          new Error(`Error parsing query, make sure it's in JSON format`),
-          500
+        next(
+          new ViewsError(`Error parsing query, make sure it's in JSON format`)
         );
       }
     }
@@ -115,10 +122,10 @@ async function products(req, res) {
       categories,
     });
   } catch (error) {
-    sendError(res, error);
+    next(new ViewsError(error.message));
   }
 }
-async function carts(req, res) {
+async function carts(req, res, next) {
   try {
     let cid = req.params?.cid ?? req.session?.user?.cart;
     if (req.session.user.cart != cid && req.session.user.role != "admin") {
@@ -135,7 +142,6 @@ async function carts(req, res) {
       for (let cart of await CartService.getCarts()) {
         carts.push({ ...cart._doc });
       }
-      console.log(carts);
       return res.render("cartSelector", { carts });
     }
     const cart = await CartService.getCartById(cid);
@@ -152,26 +158,30 @@ async function carts(req, res) {
       products,
     });
   } catch (error) {
-    sendError(res, error, 404, true);
+    next(new ViewsError(error.message));
   }
 }
-async function chat(req, res) {
+async function chat(req, res, next) {
   try {
     res.render("chat", {
       title: "Chat",
       messages: await ChatService.getMessages(),
     });
   } catch (error) {
-    sendError(res, error);
+    next(new ViewsError(error.message));
   }
 }
-async function profile(req, res) {
-  res.render("profile", { user: req.session.user });
+async function profile(req, res, next) {
+  try {
+    res.render("profile", { user: req.session.user });
+  } catch (error) {
+    next(new ViewsError(error.message));
+  }
 }
-async function logout(req, res) {
+async function logout(req, res, next) {
   req.session.destroy((err) => {
     if (err) {
-      return res.render("message", { error: true, message: err.message });
+      return next(err.message);
     }
     res.redirect("login");
   });

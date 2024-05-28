@@ -1,7 +1,8 @@
 const CartService = require("../services/CartService");
 const TicketService = require("../services/TicketService");
 const UserService = require("../services/UserService");
-const { sendError, sendSuccess } = require("./ControllerUtils");
+const { sendSuccess } = require("./ControllerUtils");
+const CartError = require("../services/errors/api/CartError");
 const CartDTO = require("../dtos/CartDTO");
 function checkOwnsCartOrIsAdmin(req, cid) {
   const user = req.session.user;
@@ -17,26 +18,26 @@ function checkOwnsCart(req, cid) {
   }
 }
 
-async function getCarts(req, res) {
+async function getCarts(req, res, next) {
   try {
     const carts = (await CartService.getCarts()).map(
       (cart) => new CartDTO(cart)
     );
     sendSuccess(res, { carts });
   } catch (error) {
-    sendError(res, error);
+    next(error);
   }
 }
-async function addCart(req, res) {
+async function addCart(req, res, next) {
   try {
     const owner = req.query.owner;
     const cart = new CartDTO(await CartService.addCart(owner));
     sendSuccess(res, { cart });
   } catch (error) {
-    sendError(res, error);
+    next(error);
   }
 }
-async function addProduct(req, res) {
+async function addProduct(req, res, next) {
   try {
     const { cid, pid } = req.params;
     checkOwnsCartOrIsAdmin(req, cid);
@@ -50,40 +51,40 @@ async function addProduct(req, res) {
     const cart = new CartDTO(await CartService.addProduct(cid, pid, quantity));
     sendSuccess(res, { cart });
   } catch (error) {
-    sendError(res, error);
+    next(error);
   }
 }
-async function getCartById(req, res) {
+async function getCartById(req, res, next) {
   try {
     const { cid } = req.params;
     checkOwnsCartOrIsAdmin(req, cid);
     const cart = new CartDTO(await CartService.getCartById(cid));
     sendSuccess(res, { cart });
   } catch (error) {
-    sendError(res, error);
+    next(error);
   }
 }
-async function clearCart(req, res) {
+async function clearCart(req, res, next) {
   try {
     const { cid } = req.params;
     checkOwnsCartOrIsAdmin(req, cid);
     await CartService.clearCart(cid);
     sendSuccess(res, {});
   } catch (error) {
-    sendError(res, error);
+    next(error);
   }
 }
-async function removeProduct(req, res) {
+async function removeProduct(req, res, next) {
   try {
     const { cid, pid } = req.params;
     checkOwnsCartOrIsAdmin(req, cid);
     const cart = new CartDTO(await CartService.removeProduct(cid, pid));
     sendSuccess(res, { cart });
   } catch (error) {
-    sendError(res, error);
+    next(error);
   }
 }
-async function updateQuantity(req, res) {
+async function updateQuantity(req, res, next) {
   try {
     const { cid, pid } = req.params;
     checkOwnsCartOrIsAdmin(req, cid);
@@ -96,10 +97,10 @@ async function updateQuantity(req, res) {
     );
     sendSuccess(res, { cart });
   } catch (error) {
-    sendError(res, error);
+    next(error);
   }
 }
-async function updateQuantityMany(req, res) {
+async function updateQuantityMany(req, res, next) {
   try {
     const { cid } = req.params;
     checkOwnsCartOrIsAdmin(req, cid);
@@ -113,23 +114,23 @@ async function updateQuantityMany(req, res) {
     );
     sendSuccess(res, { cart });
   } catch (error) {
-    sendError(res, error);
+    next(error);
   }
 }
-async function getProducts(req, res) {
+async function getProducts(req, res, next) {
   try {
     const { cid } = req.params;
     checkOwnsCartOrIsAdmin(req, cid);
     const products = new CartDTO(await CartService.getCartById(cid)).products;
     sendSuccess(res, { products });
   } catch (error) {
-    sendError(res, error);
+    next(error);
   }
 }
 function validatePaymentInfo(amount) {
   return; // dummy function that should be implemented later
 }
-async function purchase(req, res) {
+async function purchase(req, res, next) {
   try {
     const { cid, paymentData } = req.params; // paymentData is not implemented yet
     checkOwnsCart(req, cid);
@@ -148,7 +149,7 @@ async function purchase(req, res) {
       not_purchased: not_purchased.length > 0 ? not_purchased : undefined,
     });
   } catch (error) {
-    sendError(res, error);
+    next(error);
   }
 }
 

@@ -1,7 +1,7 @@
 const CustomError = require("./CustomError");
 class APIError extends CustomError {
-  constructor({ name = "APIError", message, data = null }) {
-    super({ name, message, data });
+  constructor(message, info = { name: "APIError", data: null }) {
+    super(message, info);
   }
 }
 

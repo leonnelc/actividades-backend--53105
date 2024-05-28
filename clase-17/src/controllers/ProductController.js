@@ -1,9 +1,6 @@
 const ProductService = require("../services/ProductService");
-const {
-  sendError,
-  sendSuccess,
-  buildQueryString,
-} = require("./ControllerUtils");
+const { sendSuccess, buildQueryString } = require("./ControllerUtils");
+const ProductError = require("../services/errors/api/ProductError");
 const { debugLog } = require("../utils/utils");
 function socketHandler(io, socket) {
   // This should all be done with socket.io namespaces but i couldn't get it working
@@ -50,7 +47,7 @@ function socketHandler(io, socket) {
   });
 }
 
-async function getProducts(req, res) {
+async function getProducts(req, res, next) {
   let limit, page, sort, query;
   if (req.query.limit != undefined) {
     limit = Number(req.query.limit);
@@ -65,7 +62,7 @@ async function getProducts(req, res) {
     try {
       query = JSON.parse(req.query.query);
     } catch (error) {
-      return sendError(res, new Error(`Error parsing query: ${error.message}`));
+      next(new ProductError(`Error parsing query: ${error.message}`));
     }
   }
   try {
@@ -114,23 +111,23 @@ async function getProducts(req, res) {
       nextLink,
     });
   } catch (error) {
-    sendError(res, error);
+    next(new ProductError(error.message));
   }
 }
-async function getById(req, res) {
+async function getById(req, res, next) {
   try {
     const product = await ProductService.getProductById(req.params.pid);
     sendSuccess(res, { payload: product });
   } catch (error) {
-    sendError(res, error);
+    next(new ProductError(error.message));
   }
 }
-async function getByCode(req, res) {
+async function getByCode(req, res, next) {
   try {
     const product = await ProductService.getProductByCode(req.params.code);
     sendSuccess(res, { payload: product });
   } catch (error) {
-    sendError(res, error);
+    next(new ProductError(error.message));
   }
 }
 async function update(req, res, next) {
@@ -143,7 +140,7 @@ async function update(req, res, next) {
     res.locals.products = await ProductService.getProducts();
     next();
   } catch (error) {
-    sendError(res, error);
+    next(new ProductError(error.message));
   }
 }
 async function deleteProduct(req, res, next) {
@@ -156,7 +153,7 @@ async function deleteProduct(req, res, next) {
     res.locals.products = await ProductService.getProducts();
     next();
   } catch (error) {
-    sendError(res, error);
+    next(new ProductError(error.message));
   }
 }
 async function add(req, res, next) {
@@ -169,7 +166,7 @@ async function add(req, res, next) {
     res.locals.products = await ProductService.getProducts();
     next();
   } catch (error) {
-    sendError(res, error);
+    next(new ProductError(error.message));
   }
 }
 
