@@ -1,7 +1,7 @@
 const ProductService = require("../services/ProductService");
 const { sendSuccess, buildQueryString } = require("./ControllerUtils");
 const ProductError = require("../services/errors/api/ProductError");
-const { debugLog } = require("../utils/utils");
+const { logger } = require("../utils/logger");
 function socketHandler(io, socket) {
   // This should all be done with socket.io namespaces but i couldn't get it working
   function isInRoom() {
@@ -9,10 +9,10 @@ function socketHandler(io, socket) {
   }
   socket.on("rtproducts:join", () => {
     if (!socket?.data?.loggedIn) {
-      return debugLog("Socket not logged in");
+      return logger.warning(`${new Date().toUTCString()} | Socket not logged in`);
     }
     if (socket.data.user.role !== "admin") {
-      return debugLog("Socket not authorized");
+      return logger.warning(`${new Date().toUTCString()} | Socket not authorized`);
     }
     socket.join("rtproducts");
     socket.emit("rtproducts:success");
@@ -41,7 +41,7 @@ function socketHandler(io, socket) {
         );
       })
       .catch((err) => {
-        debugLog(`Error adding product: ${err}`);
+        logger.warning(`${new Date().toUTCString()} | Error adding product: ${err}`);
         socket.emit("error", `Error adding product: ${err.message}`);
       });
   });

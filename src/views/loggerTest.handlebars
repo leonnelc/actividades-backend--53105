@@ -1,0 +1,23 @@
+<div class="container">
+<button class="btn bg-black me-1 mb-1" onclick="javascript:log('fatal')">Log fatal</button>
+<button class="btn btn-danger me-1 mb-1" onclick="javascript:log('error')">Log error</button>
+<button class="btn btn-warning me-1 mb-1" onclick="javascript:log('warning')">Log warn</button>
+<button class="btn btn-info me-1 mb-1" onclick="javascript:log('info')">Log info</button>
+<button class="btn btn-secondary me-1 mb-1" onclick="javascript:log('http')">Log http</button>
+<button class="btn bg-white text-black me-1 mb-1" onclick="javascript:log('debug')">Log debug</button>
+<div class="input-group">
+  <span class="input-group-text">Log message</span>
+  <textarea id="message" class="form-control"></textarea>
+</div>
+</div>
+
+
+<script>
+function log(level){
+  message = document.getElementById("message").value;
+  if (message.trim()){
+    return fetch(`/loggerTest/?${level}=1&message=${message.trim()}`);
+  }
+  fetch(`/loggerTest/?${level}=1`);
+}
+</script>

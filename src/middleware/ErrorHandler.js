@@ -1,9 +1,13 @@
 const APIError = require("../services/errors/APIError");
 const ViewError = require("../services/errors/ViewError");
-const { debugLog } = require("../utils/utils");
+const AuthError = require("../services/errors/AuthError");
 
-async function ErrorHandler(err, req, res, next) {
-  debugLog(err);
+// eslint-disable-next-line no-unused-vars
+async function ErrorHandler(err, req, res, _next) {
+  const trace = err.stack.split("\n")[1].trim();
+  req.logger.warning({
+    message: `${new Date().toUTCString()} | ${err.message} | ${trace}`,
+  });
   let isView = false;
   function send(status, message, optionalData) {
     if (isView) {
@@ -37,12 +41,19 @@ async function ErrorHandler(err, req, res, next) {
           send(500, err.message);
       }
       break;
+    case err instanceof AuthError:
+      isView = err.data.isView;
+      switch (err.name) {
+        default:
+          send(300, err.message);
+      }
+      break;
     default:
       switch (err.name) {
         case "CastError":
           send(
             500,
-            `Error converting the value ${err.value} to the type ${err.kind}`
+            `Error converting the value ${err.value} to the type ${err.kind}`,
           );
           break;
         case "MongoServerError":
@@ -51,8 +62,8 @@ async function ErrorHandler(err, req, res, next) {
               send(
                 500,
                 `Duplicated value of key that must be unique: ${Object.keys(
-                  err.keyValue
-                )}`
+                  err.keyValue,
+                )}`,
               );
               break;
             default:

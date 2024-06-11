@@ -1,14 +1,21 @@
-const { sendError, sendSuccess } = require("./ControllerUtils");
-const UserDTO = require("../dtos/UserDTO");
+/* eslint-disable no-unused-vars */
+const { sendSuccess } = require("./ControllerUtils");
+const AuthError = require("../services/errors/AuthError");
 function checkRoles(roles, isView) {
   // roles must be an array of role names (strings)
-  function check(req, res, next) {
+  function check(req, _res, next) {
     if (!req.session.user) {
-      return sendError(res, new Error("Not authenticated"), 400, isView);
+      throw new AuthError("Not authenticated", {
+        name: "NotAuthenticated",
+        data: { isView },
+      });
     }
     const role = req.session.user?.role;
     if (!roles.includes(role)) {
-      return sendError(res, new Error("Not authorized"), 403, isView);
+      throw new AuthError("Not authorized", {
+        name: "NotAuthorized",
+        data: { isView },
+      });
     }
     next();
   }
@@ -21,14 +28,14 @@ async function logout(req, res) {
 }
 async function current(req, res) {
   if (!req.session.loggedIn) {
-    return sendError(res, new Error("Not logged in"), 400);
+    throw new AuthError("Not logged in");
   }
   const user = req.session.user;
   sendSuccess(res, { user });
 }
 async function registerLocal(req, res) {
   if (!req.user) {
-    return sendError(res, new Error("Authentication error"), 500);
+    throw new AuthError("Authentication error");
   }
   req.session.user = req.user;
   req.session.loggedIn = true;
@@ -37,21 +44,21 @@ async function registerLocal(req, res) {
 }
 async function loginLocal(req, res) {
   if (!req.user) {
-    return sendError(res, new Error("Authentication error"), 500);
+    throw new AuthError("Authentication error");
   }
   req.session.user = req.user;
   req.session.loggedIn = true;
   //req.session.loginSuccess = true;
   res.redirect("/profile");
 }
-async function loginGithub(req, res) {}
+async function loginGithub(_req, _res) {}
 async function callbackGithub(req, res) {
   req.session.user = req.user;
   req.session.username = req.user.first_name;
   req.session.loggedIn = true;
   res.redirect("/profile");
 }
-async function loginGoogle(req, res) {}
+async function loginGoogle(_req, _res) {}
 async function callbackGoogle(req, res) {
   req.session.user = req.user;
   req.session.username = req.user.first_name;
