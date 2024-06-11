@@ -1,3 +1,4 @@
+const {logger} = require("../utils/logger")
 const dotenv = require("dotenv");
 const program = require("../utils/commander");
 const {mode} = program.opts();
@@ -5,8 +6,8 @@ const config = dotenv.config({
     path: `./.env.${mode}`
 })
 if (config.error) {
-  console.log(`Error loading environment variables`);
-  throw config.error;
+  logger.fatal(`${new Date().toUTCString()} | Error loading environment variables, reason:\n${config.error}`);
+  process.exit(1);
 }
 const configObject = {
     PORT: parseInt(process.env.PORT),

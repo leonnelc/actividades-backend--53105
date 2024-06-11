@@ -6,18 +6,23 @@ const initializePassport = require("./config/passport.config");
 const ErrorHandler = require("./middleware/ErrorHandler");
 const NotFound = require("./middleware/NotFound");
 const UpdateSockets = require("./middleware/UpdateSockets");
+const { addLogger, logger, enableDebugLogging } = require("./utils/logger.js");
 const {
   PORT,
   HOSTNAME,
   MONGO_URL,
   SESSION_SECRET,
+  DEBUGGING,
 } = require("./config/config");
-
+if (DEBUGGING) {
+  enableDebugLogging();
+  logger.info(`${new Date().toUTCString()} | Debugging logs enabled`);
+}
 const app = express();
 
 const productRouter = require("./routes/product.routes");
 const cartRouter = require("./routes/cart.routes");
-const mockingRouter = require("./routes/mocking.routes");
+const testingRouter = require("./routes/testing.routes");
 const viewsRouter = require("./routes/views.routes");
 const authRouter = require("./routes/auth.routes");
 const exphbs = require("express-handlebars");
@@ -46,11 +51,12 @@ app.set("view engine", "handlebars");
 app.set("views", "./src/views");
 
 // routers
+app.use(addLogger);
+app.use("/", testingRouter);
 app.use("/api/products", productRouter);
 app.use("/api/carts", cartRouter);
 app.use("/api/sessions", authRouter);
 app.use("/", viewsRouter);
-app.use("/", mockingRouter);
 
 // other middlewares
 app.use(UpdateSockets(socketIO));
@@ -58,12 +64,12 @@ app.use(NotFound);
 app.use(ErrorHandler);
 
 const httpServer = app.listen(PORT, () => {
-  console.log(
-    `Server listening at ${HOSTNAME ? HOSTNAME : "localhost"}:${PORT}`
+  logger.info(
+    `${new Date().toUTCString()} | Server listening at ${HOSTNAME ? HOSTNAME : "localhost"}:${PORT}`,
   );
 });
 
 // socket.io logic
 var socketIO = require("./socket-io")(httpServer, sessionMiddleware);
 
-const database = require("./database");
+require("./database");

@@ -1,5 +1,5 @@
 const ChatService = require("../services/ChatService");
-const { debugLog } = require("../utils/utils");
+const { logger } = require("../utils/logger.js");
 function socketHandler(io, socket) {
   // This should all be done with socket.io namespaces but i couldn't get it working
   function isInRoom() {
@@ -10,10 +10,8 @@ function socketHandler(io, socket) {
   }
   socket.on("chat:join", () => {
     if (!socket?.data?.loggedIn) {
-      return debugLog("Socket not logged in");
+      return logger.warnint(`${new Date().toUTCString()} | Socket not logged in`);
     }
-    user = socket.data.user;
-    username = socket.data.user.email;
     socket.join("chat");
     socket.emit("chat:success");
   });
@@ -31,7 +29,7 @@ function socketHandler(io, socket) {
         id: addedMsg._id,
       });
     } catch (error) {
-      debugLog(error);
+      logger.warning(`${new Date().toUTCString()} | ${error}`);
       socket.emit("error", error.message);
     }
   });
@@ -47,7 +45,7 @@ function socketHandler(io, socket) {
       await ChatService.deleteMessage(id);
       io.to("chat").emit("chat:deleteMessage", id);
     } catch (error) {
-      debugLog(error);
+      logger.warning(`${new Date().toUTCString()} | ${error}`);
       socket.emit("error", error.message);
     }
   });

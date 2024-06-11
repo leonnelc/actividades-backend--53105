@@ -23,7 +23,7 @@ async function addProduct(cid, pid, quantity) {
   const cart = await getCartById(cid);
   const product = await getProductById(pid);
   if (!product.status) {
-    throw new CartError(`Product is not available`, {
+    throw new CartError(`Product ${product.code} is not available`, {
       name: "ProductNotAvailable",
     });
   }
@@ -73,13 +73,13 @@ async function updateQuantityMany(cid, items) {
   for (let obj of items) {
     if (obj.product == null || obj.quantity == null) {
       throw new CartError(
-        `Objects must contain the properties product and quantity`
+        `Objects must contain the properties product and quantity`,
       );
     }
     if (!cart.items.has(obj.product)) {
       throw new CartError(
         `Product id ${obj.product} not found in cart id ${cid}`,
-        { name: "ProductNotFound" }
+        { name: "ProductNotFound" },
       );
     }
     if (obj.quantity <= 0) {
@@ -113,7 +113,7 @@ async function purchaseCart(cart) {
       cart.total =
         Math.round(
           (cart.total - (item.product.price * item.quantity + Number.EPSILON)) *
-            100
+            100,
         ) / 100; // magic formula to substract and round perfectly to 2 decimal places
       return;
     }
@@ -145,6 +145,7 @@ async function purchaseCart(cart) {
       await cart.save();
     });
   } catch (error) {
+    session.endSession();
     throw error;
   } finally {
     session.endSession();
