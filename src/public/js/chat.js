@@ -1,7 +1,7 @@
 const socket = io();
 
 const chatInput = document.getElementById("chat-input");
-const message = document.getElementById("message");
+const messageBox = document.getElementById("message");
 const chatMessages = document.getElementById("chat-messages");
 let currentUser;
 socket.emit("chat:join");
@@ -15,22 +15,34 @@ socket.on("user", (user) => {
   checkMessages();
 });
 function checkMessages() {
-  // iterates every message to check if it can be deleted
-  // if the message can be deleted then it adds a delete button to the message
+  // iterates every message to check if it can be deleted or edited
+  // if the message can be edited then it adds the buttons to the message
   for (let msg of document.getElementsByClassName("message")) {
     const username = msg.getAttribute("data-user");
     if (!canDeleteMessage(username)) {
       continue;
     }
     const contentElement = msg.querySelector(".message-content");
-    const deleteButton = document.createElement("span");
-    deleteButton.onclick = () => {
+    const buttonContainer = document.createElement("span");
+
+    const updateBtn = document.createElement("i");
+    updateBtn.onclick = () => {
+      socket.emit("chat:updateMessage", { id: msg.id, message: messageBox.value });
+    };
+    updateBtn.classList.add("bi", "bi-pencil");
+    const deleteBtn = document.createElement("i");
+    deleteBtn.onclick = () => {
       socket.emit("chat:deleteMessage", msg.id);
     };
-    const deleteBtnIcon = document.createElement("i");
-    deleteBtnIcon.classList.add("bi", "bi-trash");
-    deleteButton.appendChild(deleteBtnIcon);
-    contentElement.appendChild(deleteButton);
+    deleteBtn.classList.add("bi", "bi-trash");
+
+    buttonContainer.appendChild(updateBtn);
+    buttonContainer.appendChild(deleteBtn);
+    //deleteButton.appendChild(deleteBtnIcon);
+    //updateButton.appendChild(updateBtnIcon);
+    //contentElement.appendChild(updateButton);
+    //contentElement.appendChild(deleteButton);
+    contentElement.appendChild(buttonContainer);
   }
 }
 
@@ -40,8 +52,8 @@ chatInput.addEventListener("keyup", (event) => {
   }
 });
 function sendMessage() {
-  let msg = message.value.trim();
-  message.value = "";
+  let msg = messageBox.value.trim();
+  messageBox.value = "";
   socket.emit("chat:message", msg);
 }
 function canDeleteMessage(user) {
@@ -68,15 +80,22 @@ function addMessage(username, message, id) {
   const messageParagraph = document.createElement("p");
   messageParagraph.textContent = message;
 
-  const deleteButton = document.createElement("span");
-  deleteButton.onclick = () => {
+  const buttonContainer = document.createElement("span");
+  const updateBtn = document.createElement("i");
+  updateBtn.onclick = () => {
+    socket.emit("chat:updateMessage", { id, message: messageBox.value });
+  };
+  updateBtn.classList.add("bi", "bi-pencil");
+  const deleteBtn = document.createElement("i");
+  deleteBtn.onclick = () => {
     socket.emit("chat:deleteMessage", id);
   };
-  const deleteBtnIcon = document.createElement("i");
-  deleteBtnIcon.classList.add("bi", "bi-trash");
-  deleteButton.appendChild(deleteBtnIcon);
+  deleteBtn.classList.add("bi", "bi-trash");
+
+  buttonContainer.appendChild(updateBtn);
+  buttonContainer.appendChild(deleteBtn);
   contentElement.appendChild(messageParagraph);
-  if (canDeleteMessage(username)) contentElement.appendChild(deleteButton);
+  if (canDeleteMessage(username)) contentElement.appendChild(buttonContainer);
   userElement.appendChild(usernameSpan);
   messageElement.appendChild(userElement);
   messageElement.appendChild(contentElement);
@@ -101,6 +120,12 @@ socket.on("chat:message", (message) => {
 socket.on("chat:deleteMessage", (id) => {
   const messageElement = document.getElementById(id);
   messageElement.remove();
+});
+socket.on("chat:updateMessage", ({ id, message }) => {
+  const messageElement = document
+    .getElementById(id)
+    .querySelector(".message-content p");
+  messageElement.textContent = message;
 });
 // utility function that waits and can be cancelled with sleep.abort()
 // useful when using with a promise that uses sleep.abort() as a callback

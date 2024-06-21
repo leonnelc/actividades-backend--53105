@@ -42,6 +42,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(sessionMiddleware);
 initializePassport();
 app.use(express.static("./src/public")); // Needs to be before passport to avoid deserialization when accessing static files
+app.use(addLogger);
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -51,7 +52,6 @@ app.set("view engine", "handlebars");
 app.set("views", "./src/views");
 
 // routers
-app.use(addLogger);
 app.use("/", testingRouter);
 app.use("/api/products", productRouter);
 app.use("/api/carts", cartRouter);

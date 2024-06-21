@@ -13,12 +13,12 @@ async function realTimeProducts(req, res, next) {
 }
 async function login(req, res, next) {
   try {
-    const { loggedIn, loginSuccess, user } = req.session;
+    const { loginSuccess } = req.session;
+    const user = req.user;
     const errorMessage = req.session?.invalidLogin?.message;
     req.session.loginSuccess = undefined;
     req.session.invalidLogin = undefined;
     res.render("login", {
-      loggedIn,
       username: user?.first_name,
       errorMessage,
       loginSuccess,
@@ -29,12 +29,12 @@ async function login(req, res, next) {
 }
 async function register(req, res, next) {
   try {
-    const { loggedIn, registerSuccess, user } = req.session;
+    const { registerSuccess } = req.session;
+    const user = req.user;
     const errorMessage = req.session?.invalidRegister?.message;
     req.session.invalidRegister = undefined;
     req.session.registerSuccess = undefined;
     res.render("register", {
-      loggedIn,
       username: user?.first_name,
       errorMessage,
       registerSuccess,
@@ -60,7 +60,7 @@ async function products(req, res, next) {
         query = JSON.parse(req.query.query);
       } catch (error) {
         next(
-          new ViewsError(`Error parsing query, make sure it's in JSON format`)
+          new ViewsError(`Error parsing query, make sure it's in JSON format`),
         );
       }
     }
@@ -96,7 +96,7 @@ async function products(req, res, next) {
       lastLink = buildQueryString(req.query, "", { page: result.totalPages });
     }
     const categories = await ProductService.getCategories();
-    const { loggedIn, user } = req.session;
+    const user = req.user;
     const username = user?.first_name;
     const role = user?.role;
     const cart = user?.cart;
@@ -104,7 +104,6 @@ async function products(req, res, next) {
     res.render("home", {
       invalidPage,
       title: "Home",
-      loggedIn,
       username,
       role,
       cart,
@@ -127,15 +126,15 @@ async function products(req, res, next) {
 }
 async function carts(req, res, next) {
   try {
-    let cid = req.params?.cid ?? req.session?.user?.cart;
-    if (req.session.user.cart != cid && req.session.user.role != "admin") {
+    let cid = req.params?.cid ?? req.user?.cart;
+    if (req.user.cart != cid && req.user.role != "admin") {
       return res.render("message", {
         error: true,
         message: "You are not authorized to see other people's carts!",
       });
     }
     if (!cid) {
-      if (req.session.user.role !== "admin") {
+      if (req.user.role !== "admin") {
         throw new Error("Cart not assigned, contact an administrator");
       }
       const carts = [];
@@ -173,7 +172,7 @@ async function chat(req, res, next) {
 }
 async function profile(req, res, next) {
   try {
-    res.render("profile", { user: req.session.user });
+    res.render("profile", { user: req.user });
   } catch (error) {
     next(new ViewsError(error.message));
   }

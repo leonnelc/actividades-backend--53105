@@ -5,12 +5,11 @@ function socketHandler(io, socket) {
   function isInRoom() {
     return socket.rooms.has("chat");
   }
-  function getUser() {
-    return socket.data.user;
-  }
   socket.on("chat:join", () => {
-    if (!socket?.data?.loggedIn) {
-      return logger.warnint(`${new Date().toUTCString()} | Socket not logged in`);
+    if (!socket?.data?.user) {
+      return logger.warnint(
+        `${new Date().toUTCString()} | Socket not logged in`,
+      );
     }
     socket.join("chat");
     socket.emit("chat:success");
@@ -18,7 +17,8 @@ function socketHandler(io, socket) {
   socket.on("chat:message", async (message) => {
     try {
       if (!isInRoom()) throw new Error("User not in room");
-      const user = getUser();
+      logger.debug(JSON.stringify(socket.data));
+      const user = socket.data.user;
       if (user.role === "admin") {
         throw new Error("Admin can't send messages");
       }
@@ -29,7 +29,9 @@ function socketHandler(io, socket) {
         id: addedMsg._id,
       });
     } catch (error) {
-      logger.warning(`${new Date().toUTCString()} | ${error}`);
+      logger.warning(
+        `${new Date().toUTCString()} | ${error.message} | ${error.stack.split("\n")[1].trim()}`,
+      );
       socket.emit("error", error.message);
     }
   });
@@ -37,15 +39,31 @@ function socketHandler(io, socket) {
     if (!isInRoom()) return;
     try {
       if (
-        !(await ChatService.userOwnsMessage(getUser().email, id)) &&
-        getUser().role !== "admin"
+        !(await ChatService.userOwnsMessage(socket.data.user.email, id)) &&
+        socket.data.user.role !== "admin"
       ) {
         throw new Error(`Not authorized to delete message`);
       }
       await ChatService.deleteMessage(id);
       io.to("chat").emit("chat:deleteMessage", id);
     } catch (error) {
-      logger.warning(`${new Date().toUTCString()} | ${error}`);
+      logger.warning(
+        `${new Date().toUTCString()} | ${error.message} | ${
+          error.stack.split("\n")[1]
+        }`,
+      );
+      socket.emit("error", error.message);
+    }
+  });
+  socket.on("chat:updateMessage", async ({ id, message }) => {
+    if (!isInRoom()) return;
+    try {
+      await ChatService.updateMessage(id, message, socket.data.user);
+      io.to("chat").emit("chat:updateMessage", { id, message });
+    } catch (error) {
+      logger.warning(
+        `${new Date().toUTCString()} | ${error.message} | ${error.stack}`,
+      );
       socket.emit("error", error.message);
     }
   });

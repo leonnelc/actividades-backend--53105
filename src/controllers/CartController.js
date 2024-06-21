@@ -5,23 +5,23 @@ const { sendSuccess } = require("./ControllerUtils");
 const CartError = require("../services/errors/api/CartError");
 const CartDTO = require("../dtos/CartDTO");
 function checkOwnsCartOrIsAdmin(req, cid) {
-  const user = req.session.user;
+  const user = req.user;
   if (user.cart == cid || user.role == "admin") {
     return;
   }
-  throw new Error("Not authorized to access this cart");
+  throw new CartError("Not authorized to access this cart");
 }
 function checkOwnsCart(req, cid) {
-  const user = req.session.user;
-  if (user.cart !== cid) {
-    throw new Error("User doesn't own cart");
+  const user = req.user;
+  if (user.cart != cid) {
+    throw new CartError("User doesn't own cart");
   }
 }
 
 async function getCarts(req, res, next) {
   try {
     const carts = (await CartService.getCarts()).map(
-      (cart) => new CartDTO(cart)
+      (cart) => new CartDTO(cart),
     );
     sendSuccess(res, { carts });
   } catch (error) {
@@ -46,7 +46,7 @@ async function addProduct(req, res, next) {
       quantity = 1;
     }
     if (!Number.isInteger(quantity) || quantity <= 0) {
-      throw new Error("Invalid quantity query, must be a positive integer");
+      throw new CartError("Invalid quantity query, must be a positive integer");
     }
     const cart = new CartDTO(await CartService.addProduct(cid, pid, quantity));
     sendSuccess(res, { cart });
@@ -90,10 +90,10 @@ async function updateQuantity(req, res, next) {
     checkOwnsCartOrIsAdmin(req, cid);
     const quantity = parseInt(req.body.quantity);
     if (!Number.isInteger(quantity)) {
-      throw new Error("Quantity not specified or isn't an integer");
+      throw new CartError("Quantity not specified or isn't an integer");
     }
     const cart = new CartDTO(
-      await CartService.updateQuantity(cid, pid, quantity)
+      await CartService.updateQuantity(cid, pid, quantity),
     );
     sendSuccess(res, { cart });
   } catch (error) {
@@ -105,12 +105,12 @@ async function updateQuantityMany(req, res, next) {
     const { cid } = req.params;
     checkOwnsCartOrIsAdmin(req, cid);
     if (!Array.isArray(req.body)) {
-      throw new Error(
-        "Request body must be an array containing objects in the format {product:productId, quantity:Number}"
+      throw new CartError(
+        "Request body must be an array containing objects in the format {product:productId, quantity:Number}",
       );
     }
     const cart = new CartDTO(
-      await CartService.updateQuantityMany(cid, req.body)
+      await CartService.updateQuantityMany(cid, req.body),
     );
     sendSuccess(res, { cart });
   } catch (error) {
@@ -127,7 +127,8 @@ async function getProducts(req, res, next) {
     next(error);
   }
 }
-function validatePaymentInfo(amount) {
+// eslint-disable-next-line no-unused-vars
+function validatePaymentInfo(_amount) {
   return; // dummy function that should be implemented later
 }
 async function purchase(req, res, next) {

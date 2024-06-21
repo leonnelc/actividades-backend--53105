@@ -1,14 +1,15 @@
 const { logger } = require("./utils/logger");
+const passport = require("passport");
 const ProductController = require("./controllers/ProductController");
 const ChatController = require("./controllers/ChatController");
 function setSocketData(socket) {
-  const { loggedIn, user } = socket.request.session;
-  socket.data.loggedIn = loggedIn;
-  socket.data.user = user;
+  const req = socket.request;
+  socket.data.user = req.user;
 }
 module.exports = (httpServer, sessionMiddleware) => {
   const io = require("socket.io")(httpServer); // Use received httpServer
   io.engine.use(sessionMiddleware);
+  io.engine.use(passport.session());
   io.on("connection", async (socket) => {
     logger.debug(`${new Date().toUTCString()} | User connected`);
     setSocketData(socket);

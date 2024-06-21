@@ -1,8 +1,8 @@
 const Message = require("../models/Message");
 
 function processMessage(message) {
-  message = message.replace(/(<|>)/gi, "");
-  message = message.trim();
+  message = message?.replace(/(<|>)/gi, "");
+  message = message?.trim();
   if (!message) {
     throw new Error(`Invalid message`);
   }
@@ -31,6 +31,9 @@ async function updateMessage(id, newMessage, user) {
   const message = await Message.findById(id);
   if (!message) {
     throw new Error(`Message not found`);
+  }
+  if (message.user != user.email && user.role != "admin") {
+    throw new Error(`Not authorized to update message`);
   }
   message.message = newMessage;
   return await message.save();

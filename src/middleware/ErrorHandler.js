@@ -42,7 +42,7 @@ async function ErrorHandler(err, req, res, _next) {
       }
       break;
     case err instanceof AuthError:
-      isView = err.data.isView;
+      isView = err?.data?.isView ?? false;
       switch (err.name) {
         default:
           send(300, err.message);

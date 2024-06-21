@@ -8,7 +8,7 @@ function socketHandler(io, socket) {
     return socket.rooms.has("rtproducts");
   }
   socket.on("rtproducts:join", () => {
-    if (!socket?.data?.loggedIn) {
+    if (!socket?.data?.user) {
       return logger.warning(`${new Date().toUTCString()} | Socket not logged in`);
     }
     if (socket.data.user.role !== "admin") {
