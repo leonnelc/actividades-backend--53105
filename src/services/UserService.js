@@ -66,6 +66,11 @@ async function findByCart(cid) {
   }
   return user;
 }
+async function setRole(id, role) {
+  const user = await findById(id);
+  user.role = role;
+  await user.save();
+}
 
 module.exports = {
   findByEmail,
@@ -75,4 +80,5 @@ module.exports = {
   add,
   isValidPassword,
   findByCart,
+  setRole,
 };

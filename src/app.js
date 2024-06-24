@@ -25,6 +25,7 @@ const cartRouter = require("./routes/cart.routes");
 const testingRouter = require("./routes/testing.routes");
 const viewsRouter = require("./routes/views.routes");
 const authRouter = require("./routes/auth.routes");
+const usersRouter = require("./routes/users.routes.js");
 const exphbs = require("express-handlebars");
 const sessionMiddleware = session({
   secret: SESSION_SECRET,
@@ -56,6 +57,7 @@ app.use("/", testingRouter);
 app.use("/api/products", productRouter);
 app.use("/api/carts", cartRouter);
 app.use("/api/sessions", authRouter);
+app.use("/api/users", usersRouter);
 app.use("/", viewsRouter);
 
 // other middlewares

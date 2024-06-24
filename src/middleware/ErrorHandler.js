@@ -2,14 +2,17 @@ const APIError = require("../services/errors/APIError");
 const ViewError = require("../services/errors/ViewError");
 const AuthError = require("../services/errors/AuthError");
 
-// eslint-disable-next-line no-unused-vars
-async function ErrorHandler(err, req, res, _next) {
+function ErrorHandler(err, req, res, _next) {
   const trace = err.stack.split("\n")[1].trim();
   req.logger.warning({
-    message: `${new Date().toUTCString()} | ${err.message} | ${trace}`,
+    message: `${new Date().toUTCString()} | ${_next == "socket" ? "SOCKET | " : ""}${err.message} | ${trace}`,
   });
   let isView = false;
   function send(status, message, optionalData) {
+    if (_next == "socket") {
+      res.emit("error", message);
+      return;
+    }
     if (isView) {
       return res
         .status(status)
@@ -51,10 +54,11 @@ async function ErrorHandler(err, req, res, _next) {
     default:
       switch (err.name) {
         case "CastError":
-          send(
-            500,
-            `Error converting the value ${err.value} to the type ${err.kind}`,
-          );
+          if (err.kind == "ObjectId") {
+            send(500, `${err.value} is not a valid id`);
+            break;
+          }
+          send(500, `The value ${err.value} is not a valid ${err.kind}`);
           break;
         case "MongoServerError":
           switch (err.code) {

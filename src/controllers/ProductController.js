@@ -1,49 +1,53 @@
 const ProductService = require("../services/ProductService");
-const { sendSuccess, buildQueryString } = require("./ControllerUtils");
 const ProductError = require("../services/errors/api/ProductError");
-const { logger } = require("../utils/logger");
+const ErrorHandler = require("../middleware/ErrorHandler");
+const { sendSuccess, buildQueryString } = require("./ControllerUtils");
+const { checkRoles } = require("./AuthController");
 function socketHandler(io, socket) {
-  // This should all be done with socket.io namespaces but i couldn't get it working
+  // TODO: use namespaces instead of a "rtproducts:" prefix
   function isInRoom() {
     return socket.rooms.has("rtproducts");
   }
+  const adminOrPremium = checkRoles(["admin", "premium"], { isSocket: true });
   socket.on("rtproducts:join", () => {
-    if (!socket?.data?.user) {
-      return logger.warning(`${new Date().toUTCString()} | Socket not logged in`);
+    try {
+      adminOrPremium(socket.data);
+      socket.join("rtproducts");
+      socket.emit("rtproducts:success");
+    } catch (error) {
+      ErrorHandler(error, socket.data, socket, "socket");
     }
-    if (socket.data.user.role !== "admin") {
-      return logger.warning(`${new Date().toUTCString()} | Socket not authorized`);
-    }
-    socket.join("rtproducts");
-    socket.emit("rtproducts:success");
   });
   socket.on("rtproducts:getProductList", async () => {
     if (!isInRoom()) return;
 
     socket.emit("rtproducts:productList", await ProductService.getProducts());
   });
-  socket.on("rtproducts:deleteProduct", (pid) => {
+  socket.on("rtproducts:deleteProduct", async (pid) => {
+    // TODO: Admins should be able to delete any product. Premium users should be able to delete their own products
     if (!isInRoom()) return;
-    ProductService.deleteProduct(pid).then(async () => {
+    try {
+      await ProductService.deleteProduct(pid);
       io.to("rtproducts").emit(
         "rtproducts:productList",
-        await ProductService.getProducts()
+        await ProductService.getProducts(),
       );
-    });
+    } catch (error) {
+      ErrorHandler(error, socket.data, socket, "socket");
+    }
   });
   socket.on("rtproducts:addProduct", async (product) => {
+    // TODO: add owner to product if it's being added by a non-admin user
     if (!isInRoom()) return;
-    ProductService.addProduct(product)
-      .then(async () => {
-        io.to("rtproducts").emit(
-          "rtproducts:productList",
-          await ProductService.getProducts()
-        );
-      })
-      .catch((err) => {
-        logger.warning(`${new Date().toUTCString()} | Error adding product: ${err}`);
-        socket.emit("error", `Error adding product: ${err.message}`);
-      });
+    try {
+      await ProductService.addProduct(product);
+      io.to("rtproducts").emit(
+        "rtproducts:productList",
+        await ProductService.getProducts(),
+      );
+    } catch (error) {
+      ErrorHandler(error, socket.data, socket, "socket");
+    }
   });
 }
 
