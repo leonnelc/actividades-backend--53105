@@ -1,8 +1,16 @@
 const ProductService = require("../services/ProductService");
 const ProductError = require("../services/errors/api/ProductError");
+const ProductDTO = require("../dtos/ProductDTO");
 const ErrorHandler = require("../middleware/ErrorHandler");
 const { sendSuccess, buildQueryString } = require("./ControllerUtils");
 const { checkRoles } = require("./AuthController");
+const ownsProduct = (user, product) => {
+  product = new ProductDTO(product);
+  if (user.role == "admin" || user.id == product.owner) {
+    return true;
+  }
+  return false;
+};
 function socketHandler(io, socket) {
   // TODO: use namespaces instead of a "rtproducts:" prefix
   function isInRoom() {
@@ -27,6 +35,11 @@ function socketHandler(io, socket) {
     // TODO: Admins should be able to delete any product. Premium users should be able to delete their own products
     if (!isInRoom()) return;
     try {
+      if (
+        !ownsProduct(socket.data.user, await ProductService.getProductById(pid))
+      ) {
+        throw new ProductError(`Not authorized to delete product id ${pid}`);
+      }
       await ProductService.deleteProduct(pid);
       io.to("rtproducts").emit(
         "rtproducts:productList",
@@ -40,11 +53,35 @@ function socketHandler(io, socket) {
     // TODO: add owner to product if it's being added by a non-admin user
     if (!isInRoom()) return;
     try {
-      await ProductService.addProduct(product);
+      const owner =
+        socket.data.user.role == "admin" ? null : socket.data.user.id;
+      await ProductService.addProduct({ ...product, owner });
       io.to("rtproducts").emit(
         "rtproducts:productList",
         await ProductService.getProducts(),
       );
+    } catch (error) {
+      ErrorHandler(error, socket.data, socket, "socket");
+    }
+  });
+  socket.on("rtproducts:updateProduct", async (product) => {
+    if (!isInRoom()) return;
+    try {
+      if (
+        !ownsProduct(
+          socket.data.user,
+          await ProductService.getProductById(product.id),
+        )
+      ) {
+        throw new ProductError(
+          `Not authorized to update product id ${product.id}`,
+        );
+      }
+      const updatedProduct = await ProductService.updateProduct(
+        product.id,
+        product,
+      );
+      io.to("rtproducts").emit("rtproducts:productUpdate", updatedProduct);
     } catch (error) {
       ErrorHandler(error, socket.data, socket, "socket");
     }
@@ -136,7 +173,12 @@ async function getByCode(req, res, next) {
 }
 async function update(req, res, next) {
   try {
-    await ProductService.updateProduct(req.params.pid, req.body);
+    const { pid } = req.params;
+    if (!ownsProduct(req.user, await ProductService.getProductById(pid))) {
+      throw new Error(`Not authorized to update product id ${pid}`);
+    }
+
+    await ProductService.updateProduct(pid, req.body);
     res.locals.send = {
       status: "success",
       message: "Product updated succesfully",
@@ -149,7 +191,12 @@ async function update(req, res, next) {
 }
 async function deleteProduct(req, res, next) {
   try {
-    await ProductService.deleteProduct(req.params.pid);
+    const { pid } = req.params;
+
+    if (!ownsProduct(req.user, await ProductService.getProductById(pid))) {
+      throw new Error(`Not authorized to delete product id ${pid}`);
+    }
+    await ProductService.deleteProduct(pid);
     res.locals.send = {
       status: "success",
       message: "Product deleted succesfully",
@@ -162,7 +209,8 @@ async function deleteProduct(req, res, next) {
 }
 async function add(req, res, next) {
   try {
-    let result = await ProductService.addProduct(req.body);
+    const owner = req.user.role == "admin" ? null : req.user.id;
+    let result = await ProductService.addProduct({ ...req.body, owner });
     res.locals.send = {
       status: "success",
       message: `Product added succesfully with id ${result.id}`,

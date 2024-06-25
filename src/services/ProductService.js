@@ -1,4 +1,5 @@
 const Product = require(`../models/Product`);
+const ProductError = require("./errors/api/ProductError");
 
 async function addProduct({
   title,
@@ -9,6 +10,7 @@ async function addProduct({
   stock,
   category,
   status,
+  owner,
 }) {
   const product = await Product.create({
     title,
@@ -19,13 +21,14 @@ async function addProduct({
     stock,
     category,
     status,
+    owner,
   });
   return product;
 }
 async function deleteProduct(id) {
   const product = await Product.findByIdAndDelete(id);
   if (!product) {
-    throw new Error(`Product id ${id} not found`);
+    throw new ProductError(`Product id ${id} not found`);
   }
 }
 async function getProductsPaged({ limit, page, query, sort }) {
@@ -62,14 +65,14 @@ async function getProducts(limit) {
 async function getProductById(id) {
   const product = await Product.findById(id);
   if (!product) {
-    throw new Error(`Product id ${id} not found`);
+    throw new ProductError(`Product id ${id} not found`);
   }
   return product;
 }
 async function getProductByCode(code) {
   const product = await Product.findOne({ code });
   if (!product) {
-    throw new Error(`Product with code ${code} not found`);
+    throw new ProductError(`Product with code ${code} not found`);
   }
   return product;
 }
@@ -91,11 +94,15 @@ async function updateProduct(id, obj) {
   }
   return await product.save();
 }
+async function getProductsByOwner(owner) {
+  return await Product.find({ owner });
+}
 
 module.exports = {
   addProduct,
   deleteProduct,
   getProducts,
+  getProductsByOwner,
   getProductsPaged,
   getProductById,
   getProductByCode,

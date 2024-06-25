@@ -11,7 +11,7 @@ const productsSchema = new mongo.Schema({
     required: true,
     unique: true,
     index: true,
-    default: "admin",
+    default: null,
   },
   description: stringRequired,
   category: { type: String, required: true, index: true },
