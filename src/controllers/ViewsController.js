@@ -185,6 +185,9 @@ async function logout(req, res, next) {
     res.redirect("login");
   });
 }
+async function resetPassword(req, res, next) {
+  res.render("resetpassword", { user: req.user });
+}
 module.exports = {
   realTimeProducts,
   login,
@@ -194,4 +197,5 @@ module.exports = {
   chat,
   profile,
   logout,
+  resetPassword,
 };

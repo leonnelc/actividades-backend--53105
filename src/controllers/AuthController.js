@@ -16,6 +16,11 @@ function checkRoles(roles, opts = { isView: false, isSocket: false }) {
       });
     }
     req.logger.debug(`Checking roles for ${req.user.first_name}`);
+    if (roles.length == 1 && roles[0] == "notloggedin")
+      throw new AuthError("Already logged in", {
+        name: "AlreadyLoggedInError",
+        data: { isView: opts.isView },
+      });
     if (roles.length == 0 || roles[0] == "any") return next(); // any logged user will have access if roles = ["any"] or []
     const role = req.user?.role;
     if (!roles.includes(role)) {

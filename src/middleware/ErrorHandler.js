@@ -8,12 +8,15 @@ function ErrorHandler(err, req, res, _next) {
     message: `${new Date().toUTCString()} | ${_next == "socket" ? "SOCKET | " : ""}${err.message} | ${trace}`,
   });
   let isView = false;
-  function send(status, message, optionalData) {
+  function send(status, message, optionalData, view) {
     if (_next == "socket") {
       res.emit("error", message);
       return;
     }
     if (isView) {
+      if (view) {
+        return res.status(status).render(view, optionalData);
+      }
       return res
         .status(status)
         .render("message", { title: "Error", error: true, message });
@@ -47,6 +50,9 @@ function ErrorHandler(err, req, res, _next) {
     case err instanceof AuthError:
       isView = err?.data?.isView ?? false;
       switch (err.name) {
+        case "AlreadyLoggedInError":
+          send(300, err.message, { user: req.user }, "alreadyloggedin");
+          break;
         default:
           send(300, err.message);
       }
