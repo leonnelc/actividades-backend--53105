@@ -5,6 +5,10 @@ socket.on("rtproducts:success", () => {
   console.log("Success joining to rtproducts");
   socket.emit("rtproducts:getProductList");
 });
+let user;
+socket.on("user", (data) => {
+  user = data;
+});
 document
   .getElementById("addProductBtn")
   .addEventListener("click", openAddProductDialog);
@@ -95,49 +99,59 @@ function addProduct() {
   socket.emit("rtproducts:addProduct", product);
 }
 const productContainer = document.getElementById("product-container");
+function ownsProduct(product) {
+  if (user?.role == "admin" || user?.id == product.owner) {
+    return true;
+  }
+  return false;
+}
+function addProductCard(product) {
+  if (!ownsProduct(product)) {
+    return;
+  }
+  const card = document.createElement("div");
+  card.classList.add("product-card");
+
+  const title = document.createElement("h2");
+  title.textContent = product.title;
+  card.appendChild(title);
+
+  const description = document.createElement("p");
+  description.textContent = product.description;
+  card.appendChild(description);
+
+  const price = document.createElement("span");
+  price.textContent = `$${product.price}`;
+  card.appendChild(price);
+
+  const br = document.createElement("br");
+  card.appendChild(br);
+
+  const stock = document.createElement("span");
+  stock.textContent = ` Stock: ${product.stock}`;
+  card.appendChild(stock);
+
+  const thumbnails = document.createElement("div");
+  product.thumbnails.forEach((thumbnail) => {
+    const img = document.createElement("img");
+    img.src = thumbnail;
+    thumbnails.appendChild(img);
+  });
+  card.appendChild(thumbnails);
+
+  const deleteButton = document.createElement("button");
+  deleteButton.textContent = "Delete";
+  deleteButton.onclick = () => {
+    deleteProduct(product._id);
+  };
+  card.appendChild(deleteButton);
+
+  productContainer.appendChild(card);
+}
 socket.on("rtproducts:productList", (products) => {
   productContainer.innerHTML = "";
 
-  products.forEach((product) => {
-    const card = document.createElement("div");
-    card.classList.add("product-card");
-
-    const title = document.createElement("h2");
-    title.textContent = product.title;
-    card.appendChild(title);
-
-    const description = document.createElement("p");
-    description.textContent = product.description;
-    card.appendChild(description);
-
-    const price = document.createElement("span");
-    price.textContent = `$${product.price}`;
-    card.appendChild(price);
-
-    const br = document.createElement("br");
-    card.appendChild(br);
-
-    const stock = document.createElement("span");
-    stock.textContent = ` Stock: ${product.stock}`;
-    card.appendChild(stock);
-
-    const thumbnails = document.createElement("div");
-    product.thumbnails.forEach((thumbnail) => {
-      const img = document.createElement("img");
-      img.src = thumbnail;
-      thumbnails.appendChild(img);
-    });
-    card.appendChild(thumbnails);
-
-    const deleteButton = document.createElement("button");
-    deleteButton.textContent = "Delete";
-    deleteButton.onclick = () => {
-      deleteProduct(product._id);
-    };
-    card.appendChild(deleteButton);
-
-    productContainer.appendChild(card);
-  });
+  products.forEach(addProductCard);
 });
 socket.on("error", (message) => {
   errmsg.textContent = message;

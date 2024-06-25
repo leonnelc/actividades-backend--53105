@@ -22,6 +22,7 @@ module.exports = (httpServer, sessionMiddleware) => {
   io.on("connection", async (socket) => {
     logger.debug(`${new Date().toUTCString()} | SOCKET | User connected`);
     setSocketData(socket);
+    socket.emit("user", socket.data.user);
     socket.on("getUser", () => {
       socket.emit("user", socket.data.user);
     });
