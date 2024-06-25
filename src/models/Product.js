@@ -5,6 +5,14 @@ const stringRequired = { type: String, required: true };
 const numRequired = { type: Number, required: true };
 const productsSchema = new mongo.Schema({
   title: stringRequired,
+  owner: {
+    type: mongo.SchemaTypes.ObjectId,
+    ref: "User",
+    required: true,
+    unique: true,
+    index: true,
+    default: "admin",
+  },
   description: stringRequired,
   category: { type: String, required: true, index: true },
   price: numRequired,
@@ -25,6 +33,6 @@ productsSchema.pre("save", function (next) {
 
 productsSchema.plugin(mongoosePaginate);
 
-const Products = mongo.model("Products", productsSchema);
+const Product = mongo.model("Product", productsSchema);
 
-module.exports = Products;
+module.exports = Product;

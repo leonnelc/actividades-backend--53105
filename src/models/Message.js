@@ -1,11 +1,12 @@
 const mongo = require("mongoose");
 
-const stringRequired = {type: String, required:true};
+const stringRequired = { type: String, required: true };
 const messagesSchema = new mongo.Schema({
-    user: stringRequired,
-    message: stringRequired
+  user: stringRequired,
+  message: stringRequired,
 });
 
-const Messages = mongo.model("Messages", messagesSchema);
+const Message = mongo.model("Message", messagesSchema);
 
-module.exports = Messages;
+module.exports = Message;
+

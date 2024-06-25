@@ -5,7 +5,7 @@ const cartSchema = new Schema({
   items: {
     type: Map,
     of: {
-      product: { type: Schema.Types.ObjectId, ref: "Products", required: true },
+      product: { type: Schema.Types.ObjectId, ref: "Product", required: true },
       quantity: { type: Number, required: true, default: 1 },
     },
     default: {},
@@ -28,7 +28,7 @@ cartSchema.pre("save", async function (next) {
     this.total =
       Math.round(
         (this.total + (item.product.price * item.quantity + Number.EPSILON)) *
-          100
+          100,
       ) / 100; // this black magic rounds to 2 decimal places
   });
   next();
