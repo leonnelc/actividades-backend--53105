@@ -1,6 +1,7 @@
-/* eslint-disable no-unused-vars */
 const { sendSuccess } = require("./ControllerUtils");
 const AuthError = require("../services/errors/AuthError");
+const passport = require("passport");
+
 function checkRoles(roles, opts = { isView: false, isSocket: false }) {
   // roles must be an array of role names (strings)
   function check(req, _res, next) {
@@ -36,8 +37,20 @@ function checkRoles(roles, opts = { isView: false, isSocket: false }) {
   return check;
 }
 
+// TODO: make cookie settings use environment variables
+
+const setJWTCookie = (req, res) => {
+  res.cookie("jwt", req.user.token, {
+    priority: "high",
+    httpOnly: true,
+    sameSite: "strict", // Protect against CSRF
+    maxAge: 86400000, // 1 day
+  });
+  req.user = req.user.user;
+};
+
 async function logout(req, res) {
-  req.session.destroy();
+  res.clearCookie("jwt");
   res.redirect("/login");
 }
 async function current(req, res, next) {
@@ -47,26 +60,99 @@ async function current(req, res, next) {
   sendSuccess(res, { user: req.user });
 }
 async function registerLocal(req, res, next) {
-  if (!req.user) {
-    return next(new AuthError("Authentication error"));
-  }
-  //req.session.registerSuccess = true;
-  res.redirect("/profile");
+  passport.authenticate(
+    "register",
+    { session: false },
+    (err, user, info, status) => {
+      if (err) {
+        req.logger.warning(`Login attempt failed: ${err.message}`);
+        return res.redirect(`/register?err=${err.message}`);
+      }
+      if (!user) {
+        return next(
+          new AuthError("Authentication error", { data: { isView: true } }),
+        );
+      }
+      req.user = user;
+      setJWTCookie(req, res);
+      res.redirect("/profile");
+    },
+  )(req, res, next);
 }
 async function loginLocal(req, res, next) {
-  if (!req.user) {
-    return next(AuthError("Authentication error"));
-  }
-  //req.session.loginSuccess = true;
-  res.redirect("/profile");
+  passport.authenticate(
+    "login",
+    { session: false },
+    (err, user, info, status) => {
+      if (err) {
+        req.logger.warning(`Login attempt failed: ${err.message}`);
+        return res.redirect(`/login?err=${err.message}`);
+      }
+      if (!user) {
+        return next(
+          new AuthError("Authentication error", { data: { isView: true } }),
+        );
+      }
+      req.user = user;
+      setJWTCookie(req, res);
+      res.redirect("/profile");
+    },
+  )(req, res, next);
 }
-async function loginGithub(_req, _res) {}
-async function callbackGithub(req, res) {
-  res.redirect("/profile");
+async function githubLogin(req, res, next) {
+  passport.authenticate("github", {
+    session: false,
+    scope: ["user:email"],
+  })(req, res, next);
 }
-async function loginGoogle(_req, _res) {}
-async function callbackGoogle(req, res) {
-  res.redirect("/profile");
+
+async function githubCallback(req, res, next) {
+  passport.authenticate(
+    "github",
+    { session: false },
+    (err, user, info, status) => {
+      if (err) {
+        req.logger.warning(`Github login attempt failed: ${err.message}`);
+        return res.redirect(`/login?err=${err.message}`);
+      }
+      if (!user) {
+        return next(
+          new AuthError("Authentication error", { data: { isView: true } }),
+        );
+      }
+      req.user = user;
+      setJWTCookie(req, res);
+      res.redirect("/profile");
+    },
+  )(req, res, next);
+}
+
+async function googleLogin(req, res, next) {
+  passport.authenticate("google", {
+    session: false,
+    scope: ["profile", "email"],
+  })(req, res, next);
+}
+
+async function googleCallback(req, res, next) {
+  passport.authenticate(
+    "google",
+    { session: false },
+    (err, user, info, status) => {
+      if (err) {
+        req.logger.warning(`Google login attempt failed: ${err.message}`);
+        return res.redirect(`/login?err=${err.message}`);
+      }
+      if (!user) {
+        return next(
+          new AuthError("Authentication error", { data: { isView: true } }),
+        );
+      }
+      req.user = user;
+      setJWTCookie(req, res);
+      res.redirect("/profile");
+    },
+  )(req, res, next);
 }
 
 module.exports = {
@@ -74,9 +160,9 @@ module.exports = {
   current,
   registerLocal,
   loginLocal,
-  loginGithub,
-  callbackGithub,
-  loginGoogle,
-  callbackGoogle,
+  githubLogin,
+  githubCallback,
+  googleLogin,
+  googleCallback,
   checkRoles,
 };

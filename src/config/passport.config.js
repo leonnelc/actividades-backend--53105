@@ -1,7 +1,16 @@
 const passport = require("passport");
-const LocalStrategy = require("passport-local");
+const LocalStrategy = require("passport-local").Strategy;
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
-const GitHubStrategy = require("passport-github2");
+const GitHubStrategy = require("passport-github2").Strategy;
+const JwtStrategy = require("passport-jwt").Strategy;
+const ExtractJwt = require("passport-jwt").ExtractJwt;
+ExtractJwt.fromCookie = function (cookieName) {
+  return (req) => {
+    if (!req.cookies) return null;
+    const cookie = req.cookies[cookieName];
+    return cookie;
+  };
+};
 const PassportController = require("../controllers/PassportController");
 const {
   GITHUB_ID,
@@ -10,11 +19,26 @@ const {
   GOOGLE_ID,
   GOOGLE_SECRET,
   GOOGLE_CALLBACK,
+  JWT_SECRET,
 } = require("./config");
 
 const initializePassport = () => {
-  passport.serializeUser(PassportController.serialize);
-  passport.deserializeUser(PassportController.deserialize);
+  // JWT Strategy
+  passport.use(
+    "jwt",
+    new JwtStrategy(
+      {
+        jwtFromRequest: ExtractJwt.fromExtractors([
+          ExtractJwt.fromAuthHeaderAsBearerToken(),
+          ExtractJwt.fromUrlQueryParameter("jwt"),
+          ExtractJwt.fromCookie("jwt"),
+        ]),
+        secretOrKey: JWT_SECRET,
+        passReqToCallback: true,
+      },
+      PassportController.jwtVerify,
+    ),
+  );
 
   // Local register
   passport.use(
@@ -24,8 +48,8 @@ const initializePassport = () => {
         passReqToCallback: true,
         usernameField: "email",
       },
-      PassportController.registerLocal
-    )
+      PassportController.registerLocal,
+    ),
   );
 
   // Local login
@@ -33,8 +57,8 @@ const initializePassport = () => {
     "login",
     new LocalStrategy(
       { usernameField: "email", passReqToCallback: true },
-      PassportController.loginLocal
-    )
+      PassportController.loginLocal,
+    ),
   );
 
   // Github login
@@ -47,8 +71,8 @@ const initializePassport = () => {
         clientSecret: GITHUB_SECRET,
         callbackURL: GITHUB_CALLBACK,
       },
-      PassportController.loginGithub
-    )
+      PassportController.loginGithub,
+    ),
   );
 
   // Google login
@@ -60,8 +84,8 @@ const initializePassport = () => {
         clientSecret: GOOGLE_SECRET,
         callbackURL: GOOGLE_CALLBACK,
       },
-      PassportController.loginGoogle
-    )
+      PassportController.loginGoogle,
+    ),
   );
 };
 

@@ -32,7 +32,6 @@ function socketHandler(io, socket) {
     socket.emit("rtproducts:productList", await ProductService.getProducts());
   });
   socket.on("rtproducts:deleteProduct", async (pid) => {
-    // TODO: Admins should be able to delete any product. Premium users should be able to delete their own products
     if (!isInRoom()) return;
     try {
       if (
@@ -50,7 +49,6 @@ function socketHandler(io, socket) {
     }
   });
   socket.on("rtproducts:addProduct", async (product) => {
-    // TODO: add owner to product if it's being added by a non-admin user
     if (!isInRoom()) return;
     try {
       const owner =

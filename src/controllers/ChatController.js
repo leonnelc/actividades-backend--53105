@@ -37,10 +37,8 @@ function socketHandler(io, socket) {
     if (!isInRoom()) return;
     try {
       if (
-        !(
-          socket.data.user.role !== "admin" &&
-          (await ChatService.userOwnsMessage(socket.data.user.email, id))
-        )
+        socket.data.user.role != "admin" &&
+        !(await ChatService.userOwnsMessage(socket.data.user.email, id))
       ) {
         throw new ChatError(`Not authorized to delete message`);
       }

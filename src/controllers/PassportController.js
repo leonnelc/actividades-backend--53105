@@ -1,42 +1,42 @@
 const UserService = require("../services/UserService");
 const validator = require("email-validator");
 const UserDTO = require("../dtos/UserDTO");
-function invalidRegister(req, done, message) {
-  req.session.invalidRegister = { message };
-  done(null, false);
+const jwt = require("jsonwebtoken");
+const { JWT_SECRET } = require("../config/config");
+
+function setJWT(user, done) {
+  const userdto = new UserDTO(user);
+  const token = jwt.sign({ user: userdto }, JWT_SECRET, { expiresIn: "1d" });
+  done(null, { user: userdto, token });
 }
-function invalidLogin(req, done, message) {
-  req.session.invalidLogin = { message };
-  done(null, false);
-}
+
 async function registerLocal(req, username, password, done) {
   const email = req.body.email?.trim().toLowerCase();
   const age = Number(req.body.age);
   const first_name = req.body.first_name?.trim();
   const last_name = req.body.last_name?.trim();
+
   if (age <= 0) {
-    return invalidRegister(req, done, "Invalid age");
+    return done(new Error("Invalid age"));
   }
   if (!first_name) {
-    return invalidRegister(req, done, "First name is required");
+    return done(new Error("First name is required"));
   }
   if (!last_name) {
-    return invalidRegister(req, done, "Last name is required");
+    return done(new Error("Last name is required"));
   }
   if (password.length < 4) {
-    return invalidRegister(
-      req,
-      done,
-      "Invalid password, must be at least 4 characters long"
+    return done(
+      new Error("Invalid password, must be at least 4 characters long"),
     );
   }
   if (!validator.validate(email)) {
-    return invalidRegister(req, done, "Invalid email");
+    return done(new Error("Invalid email"));
   }
 
   try {
     if (await UserService.userExists(email)) {
-      return invalidRegister(req, done, "User already exists");
+      return done(new Error("User already exists"));
     }
     const user = await UserService.add({
       first_name,
@@ -46,13 +46,12 @@ async function registerLocal(req, username, password, done) {
       role: "user",
       password,
     });
-
-    return done(null, new UserDTO(user));
+    setJWT(user, done);
   } catch (error) {
-    req.session.invalidRegister = { message: error.message };
-    return done(null, false);
+    return done(error);
   }
 }
+
 async function loginLocal(req, email, password, done) {
   email = email?.trim()?.toLowerCase();
   try {
@@ -61,22 +60,21 @@ async function loginLocal(req, email, password, done) {
       !user.password ||
       !UserService.isValidPassword(password, user.password)
     ) {
-      return invalidLogin(req, done, "Invalid password");
+      return done(new Error("Invalid credentials"));
     }
-
-    return done(null, new UserDTO(user));
+    setJWT(user, done);
   } catch (error) {
-    req.session.invalidLogin = { message: error.message };
-    return done(null, false);
+    return done(error);
   }
 }
+
 async function loginGithub(req, accessToken, refreshToken, profile, done) {
   try {
     if (!profile._json.email) {
-      return invalidLogin(
-        req,
-        done,
-        "Github account email not found, try setting your email to public"
+      return done(
+        new Error(
+          "Github account email not found, try setting your email to public",
+        ),
       );
     }
     let user = await UserService.findOrCreate({
@@ -87,16 +85,16 @@ async function loginGithub(req, accessToken, refreshToken, profile, done) {
       password: null,
       role: "user",
     });
-    return done(null, new UserDTO(user));
+    setJWT(user, done);
   } catch (error) {
-    req.session.invalidLogin = { message: error.message };
-    return done(null, false);
+    return done(error);
   }
 }
+
 async function loginGoogle(req, accessToken, refreshToken, profile, done) {
   try {
     if (!profile._json.email) {
-      return invalidLogin(req, done, "Google account email not found");
+      return done(new Error("Google account email not found"));
     }
     const user = await UserService.findOrCreate({
       first_name: profile._json.given_name,
@@ -106,24 +104,24 @@ async function loginGoogle(req, accessToken, refreshToken, profile, done) {
       password: null,
       role: "user",
     });
-    return done(null, new UserDTO(user));
+    setJWT(user, done);
   } catch (error) {
-    req.session.invalidLogin = { message: error.message };
-    return done(null, false);
+    return done(error);
   }
 }
-function serialize(user, done) {
-  done(null, user.id);
+
+async function jwtVerify(req, jwt_payload, done) {
+  try {
+    return done(null, { ...jwt_payload });
+  } catch (error) {
+    return done(error, false);
+  }
 }
-async function deserialize(id, done) {
-  const user = new UserDTO(await UserService.findById(id));
-  done(null, user);
-}
+
 module.exports = {
   loginLocal,
   registerLocal,
   loginGithub,
   loginGoogle,
-  serialize,
-  deserialize,
+  jwtVerify,
 };

@@ -1,69 +1,52 @@
 const express = require("express");
-const session = require("express-session");
-const MongoStore = require("connect-mongo");
 const passport = require("passport");
 const initializePassport = require("./config/passport.config");
-const ErrorHandler = require("./middleware/ErrorHandler");
-const NotFound = require("./middleware/NotFound");
-const UpdateSockets = require("./middleware/UpdateSockets");
 const { addLogger, logger, enableDebugLogging } = require("./utils/logger.js");
-const {
-  PORT,
-  HOSTNAME,
-  MONGO_URL,
-  SESSION_SECRET,
-  DEBUGGING,
-} = require("./config/config");
+const { PORT, HOSTNAME, DEBUGGING } = require("./config/config");
 if (DEBUGGING) {
   enableDebugLogging();
   logger.info(`${new Date().toUTCString()} | Debugging logs enabled`);
 }
 const app = express();
 
-const productRouter = require("./routes/product.routes");
-const cartRouter = require("./routes/cart.routes");
-const testingRouter = require("./routes/testing.routes");
-const viewsRouter = require("./routes/views.routes");
-const authRouter = require("./routes/auth.routes");
-const usersRouter = require("./routes/users.routes.js");
 const exphbs = require("express-handlebars");
-const sessionMiddleware = session({
-  secret: SESSION_SECRET,
-  resave: true,
-  saveUninitialized: false,
-  store: MongoStore.create({
-    mongoUrl: MONGO_URL,
-    ttl: 86400,
-  }),
-});
+
+initializePassport();
 
 // middlewares
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(sessionMiddleware);
-initializePassport();
-app.use(express.static("./src/public")); // Needs to be before passport to avoid deserialization when accessing static files
+app.use(express.static("./src/public")); // Needs to be before passport
+app.use(require("cookie-parser")());
 app.use(addLogger);
 app.use(passport.initialize());
-app.use(passport.session());
+app.use(require("./middleware/AuthMiddleware.js"));
 
 // express-handlebars & config
-app.engine("handlebars", exphbs.engine());
+app.engine(
+  "handlebars",
+  exphbs.engine({
+    handlebars:
+      require("@handlebars/allow-prototype-access").allowInsecurePrototypeAccess(
+        require("handlebars"),
+      ),
+  }),
+);
 app.set("view engine", "handlebars");
 app.set("views", "./src/views");
 
 // routers
-app.use("/", testingRouter);
-app.use("/api/products", productRouter);
-app.use("/api/carts", cartRouter);
-app.use("/api/sessions", authRouter);
-app.use("/api/users", usersRouter);
-app.use("/", viewsRouter);
+app.use("/", require("./routes/testing.routes"));
+app.use("/api/products", require("./routes/product.routes"));
+app.use("/api/carts", require("./routes/cart.routes"));
+app.use("/api/sessions", require("./routes/auth.routes"));
+app.use("/api/users", require("./routes/users.routes.js"));
+app.use("/", require("./routes/views.routes"));
 
 // other middlewares
-app.use(UpdateSockets(socketIO));
-app.use(NotFound);
-app.use(ErrorHandler);
+app.use(require("./middleware/UpdateSockets")(socketIO));
+app.use(require("./middleware/NotFound"));
+app.use(require("./middleware/ErrorHandler"));
 
 const httpServer = app.listen(PORT, () => {
   logger.info(
@@ -72,6 +55,6 @@ const httpServer = app.listen(PORT, () => {
 });
 
 // socket.io logic
-var socketIO = require("./socket-io")(httpServer, sessionMiddleware);
+var socketIO = require("./socket-io")(httpServer);
 
 require("./database");

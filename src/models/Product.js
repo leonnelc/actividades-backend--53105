@@ -8,7 +8,7 @@ const productsSchema = new mongo.Schema({
   owner: {
     type: mongo.SchemaTypes.ObjectId,
     ref: "User",
-    required: true,
+    required: false,
     unique: true,
     index: true,
     default: null,

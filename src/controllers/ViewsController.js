@@ -13,15 +13,12 @@ async function realTimeProducts(req, res, next) {
 }
 async function login(req, res, next) {
   try {
-    const { loginSuccess } = req.session;
     const user = req.user;
-    const errorMessage = req.session?.invalidLogin?.message;
-    req.session.loginSuccess = undefined;
-    req.session.invalidLogin = undefined;
+    const { err } = req.query;
     res.render("login", {
       username: user?.first_name,
-      errorMessage,
-      loginSuccess,
+      errorMessage: err,
+      loginSuccess: undefined,
     });
   } catch (error) {
     next(new ViewsError(error.message));
@@ -29,15 +26,12 @@ async function login(req, res, next) {
 }
 async function register(req, res, next) {
   try {
-    const { registerSuccess } = req.session;
     const user = req.user;
-    const errorMessage = req.session?.invalidRegister?.message;
-    req.session.invalidRegister = undefined;
-    req.session.registerSuccess = undefined;
+    const { err } = req.query;
     res.render("register", {
       username: user?.first_name,
-      errorMessage,
-      registerSuccess,
+      errorMessage: err,
+      registerSuccess: null,
     });
   } catch (error) {
     next(new ViewsError(error.message));
@@ -178,12 +172,8 @@ async function profile(req, res, next) {
   }
 }
 async function logout(req, res, next) {
-  req.session.destroy((err) => {
-    if (err) {
-      return next(err.message);
-    }
-    res.redirect("login");
-  });
+  res.clearCookie("jwt");
+  res.redirect("login");
 }
 async function resetPassword(req, res, next) {
   res.render("resetpassword", { user: req.user });
