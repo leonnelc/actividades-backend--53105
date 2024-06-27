@@ -3,6 +3,9 @@ const ProductService = require("../services/ProductService");
 const ChatService = require("../services/ChatService");
 const { buildQueryString } = require("./ControllerUtils");
 const ViewsError = require("../services/errors/ViewError");
+const jwt = require("jsonwebtoken");
+const { logger } = require("../utils/logger");
+const { JWT_SECRET } = require("../config/config");
 
 async function realTimeProducts(req, res, next) {
   try {
@@ -176,7 +179,14 @@ async function logout(req, res, next) {
   res.redirect("login");
 }
 async function resetPassword(req, res, next) {
-  res.render("resetpassword", { user: req.user });
+  const { token } = req.query;
+  try {
+    if (token) jwt.verify(token, JWT_SECRET);
+    res.render("resetpassword");
+  } catch (error) {
+    logger.warning(error);
+    res.render("resetpassword", { invalidtoken: true });
+  }
 }
 module.exports = {
   realTimeProducts,
