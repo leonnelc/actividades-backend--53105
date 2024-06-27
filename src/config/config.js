@@ -23,5 +23,7 @@ const configObject = {
   GOOGLE_CALLBACK: process.env.GOOGLE_CALLBACK,
   JWT_SECRET: process.env.JWT_SECRET,
   DEBUGGING: process.env.DEBUGGING === "true",
+  MAIL_USER: process.env.MAIL_USER,
+  MAIL_PASS: process.env.MAIL_PASS,
 };
 module.exports = configObject;

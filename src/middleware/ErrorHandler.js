@@ -1,6 +1,7 @@
 const APIError = require("../services/errors/APIError");
 const ViewError = require("../services/errors/ViewError");
 const AuthError = require("../services/errors/AuthError");
+const { JsonWebTokenError } = require("jsonwebtoken");
 
 function ErrorHandler(err, req, res, _next) {
   const trace = err.stack.split("\n")[1].trim();
@@ -56,6 +57,10 @@ function ErrorHandler(err, req, res, _next) {
         default:
           send(300, err.message);
       }
+      break;
+    case err instanceof JsonWebTokenError:
+      isView = err?.data?.isView ?? false;
+      send(300, err.message);
       break;
     default:
       switch (err.name) {

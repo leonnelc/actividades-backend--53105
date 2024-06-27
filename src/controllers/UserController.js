@@ -1,4 +1,5 @@
 const UserService = require("../services/UserService");
+const MailService = require("../services/MailService");
 const { sendSuccess } = require("./ControllerUtils");
 const APIError = require("../services/errors/APIError");
 
@@ -21,4 +22,31 @@ async function togglePremium(req, res, next) {
   }
 }
 
-module.exports = { togglePremium };
+async function resetPassword(req, res, next) {
+  const { token, password } = req.query;
+
+  try {
+    await UserService.resetPassword(token, password);
+
+    sendSuccess(res, { message: "Password has been reset" });
+  } catch (error) {
+    next(error);
+  }
+}
+
+async function requestPasswordReset(req, res, next) {
+  const { email } = req.query;
+  try {
+    const token = await UserService.generateResetToken(email);
+    MailService.sendMail(
+      email,
+      "Password reset",
+      `<h1>Here's your password reset link</h1><button><a href="http://localhost:8080/resetpassword?token=${token}">Click here</a></button><p>If you didn't request a password reset, ignore this mail</p>`,
+    );
+    sendSuccess(res, { message: "Reset link sent" });
+  } catch (error) {
+    next(error);
+  }
+}
+
+module.exports = { togglePremium, resetPassword, requestPasswordReset };
