@@ -1,6 +1,7 @@
 const CartService = require("../services/CartService");
 const TicketService = require("../services/TicketService");
 const UserService = require("../services/UserService");
+const ProductService = require("../services/ProductService");
 const { sendSuccess } = require("./ControllerUtils");
 const CartError = require("../services/errors/api/CartError");
 const CartDTO = require("../dtos/CartDTO");
@@ -21,7 +22,7 @@ function checkOwnsCart(req, cid) {
 async function getCarts(req, res, next) {
   try {
     const carts = (await CartService.getCarts()).map(
-      (cart) => new CartDTO(cart),
+      (cart) => new CartDTO(cart)
     );
     sendSuccess(res, { carts });
   } catch (error) {
@@ -41,6 +42,11 @@ async function addProduct(req, res, next) {
   try {
     const { cid, pid } = req.params;
     checkOwnsCartOrIsAdmin(req, cid);
+    const product = await ProductService.getProductById(pid);
+    if (req.user.id == product.owner) {
+      throw new CartError("Can't add owned product to cart");
+    }
+
     let quantity = parseInt(req.query.quantity);
     if (!req.query.quantity) {
       quantity = 1;
@@ -93,7 +99,7 @@ async function updateQuantity(req, res, next) {
       throw new CartError("Quantity not specified or isn't an integer");
     }
     const cart = new CartDTO(
-      await CartService.updateQuantity(cid, pid, quantity),
+      await CartService.updateQuantity(cid, pid, quantity)
     );
     sendSuccess(res, { cart });
   } catch (error) {
@@ -106,11 +112,11 @@ async function updateQuantityMany(req, res, next) {
     checkOwnsCartOrIsAdmin(req, cid);
     if (!Array.isArray(req.body)) {
       throw new CartError(
-        "Request body must be an array containing objects in the format {product:productId, quantity:Number}",
+        "Request body must be an array containing objects in the format {product:productId, quantity:Number}"
       );
     }
     const cart = new CartDTO(
-      await CartService.updateQuantityMany(cid, req.body),
+      await CartService.updateQuantityMany(cid, req.body)
     );
     sendSuccess(res, { cart });
   } catch (error) {
