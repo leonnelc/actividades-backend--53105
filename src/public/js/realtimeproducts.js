@@ -128,7 +128,7 @@ function addProductCard(product) {
   card.appendChild(br);
 
   const stock = document.createElement("span");
-  stock.textContent = ` Stock: ${product.stock}`;
+  stock.textContent = `Stock: ${product.stock}`;
   card.appendChild(stock);
 
   const thumbnails = document.createElement("div");
@@ -138,6 +138,10 @@ function addProductCard(product) {
     thumbnails.appendChild(img);
   });
   card.appendChild(thumbnails);
+
+  const owner = document.createElement("span");
+  owner.textContent = `Owner id: ${product.owner ?? "admin"}`;
+  card.appendChild(owner);
 
   const deleteButton = document.createElement("button");
   deleteButton.textContent = "Delete";
