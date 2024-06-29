@@ -6,7 +6,9 @@ const { JsonWebTokenError } = require("jsonwebtoken");
 function ErrorHandler(err, req, res, _next) {
   const trace = err.stack.split("\n")[1].trim();
   req.logger.warning({
-    message: `${new Date().toUTCString()} | ${_next == "socket" ? "SOCKET | " : ""}${err.message} | ${trace}`,
+    message: `${new Date().toUTCString()} | ${
+      _next == "socket" ? "SOCKET | " : ""
+    }${err.message} | ${trace}`,
   });
   let isView = false;
   function send(status, message, optionalData, view) {
@@ -29,13 +31,22 @@ function ErrorHandler(err, req, res, _next) {
   switch (true) {
     case err instanceof APIError:
       switch (err.name) {
+        case "NotAuthorized":
+          send(300, err.message);
+          break;
+        case "NotFound":
+          send(404, err.message);
+          break;
         case "NotEnoughStock":
-          send(500, `Items out of stock`, {
+          send(422, `Items out of stock`, {
             not_purchased: err.data.not_purchased,
           });
           break;
         case "NoPurchasedItems":
-          send(500, err.message, { not_purchased: err.data.not_purchased });
+          send(422, err.message, { not_purchased: err.data.not_purchased });
+          break;
+        case "EmptyCart":
+          send(422, err.message);
           break;
         default:
           send(500, err.message);
@@ -77,8 +88,8 @@ function ErrorHandler(err, req, res, _next) {
               send(
                 500,
                 `Duplicated value of key that must be unique: ${Object.keys(
-                  err.keyValue,
-                )}`,
+                  err.keyValue
+                )}`
               );
               break;
             default:

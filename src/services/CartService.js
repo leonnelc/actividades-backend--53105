@@ -40,7 +40,7 @@ async function removeProduct(cid, pid) {
   const cart = await getCartById(cid);
   if (!cart.items.has(pid)) {
     throw new CartError(`Product id ${pid} not found in cart id ${cid}`, {
-      name: "ProductNotFound",
+      name: "NotFound",
     });
   }
   cart.items.delete(pid);
@@ -56,7 +56,7 @@ async function updateQuantity(cid, pid, quantity) {
   const cart = await getCartById(cid);
   if (!cart.items.has(pid)) {
     throw new CartError(`Product id ${pid} not found in cart id ${cid}`, {
-      name: "ProductNotFound",
+      name: "NotFound",
     });
   }
   if (quantity > 0) {
@@ -73,13 +73,13 @@ async function updateQuantityMany(cid, items) {
   for (let obj of items) {
     if (obj.product == null || obj.quantity == null) {
       throw new CartError(
-        `Objects must contain the properties product and quantity`,
+        `Objects must contain the properties product and quantity`
       );
     }
     if (!cart.items.has(obj.product)) {
       throw new CartError(
         `Product id ${obj.product} not found in cart id ${cid}`,
-        { name: "ProductNotFound" },
+        { name: "NotFound" }
       );
     }
     if (obj.quantity <= 0) {
@@ -113,7 +113,7 @@ async function purchaseCart(cart) {
       cart.total =
         Math.round(
           (cart.total - (item.product.price * item.quantity + Number.EPSILON)) *
-            100,
+            100
         ) / 100; // magic formula to substract and round perfectly to 2 decimal places
       return;
     }

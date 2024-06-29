@@ -4,18 +4,24 @@ const UserService = require("../services/UserService");
 const ProductService = require("../services/ProductService");
 const { sendSuccess } = require("./ControllerUtils");
 const CartError = require("../services/errors/api/CartError");
+const APIError = require("../services/errors/APIError");
 const CartDTO = require("../dtos/CartDTO");
+const TicketDTO = require("../dtos/TicketDTO");
 function checkOwnsCartOrIsAdmin(req, cid) {
   const user = req.user;
   if (user.cart == cid || user.role == "admin") {
     return;
   }
-  throw new CartError("Not authorized to access this cart");
+  throw new APIError(`Not authorized to access cart ${cid}`, {
+    name: "NotAuthorized",
+  });
 }
 function checkOwnsCart(req, cid) {
   const user = req.user;
   if (user.cart != cid) {
-    throw new CartError("User doesn't own cart");
+    throw new APIError(`User doesn't own cart ${cid}`, {
+      name: "NotAuthorized",
+    });
   }
 }
 
@@ -32,6 +38,11 @@ async function getCarts(req, res, next) {
 async function addCart(req, res, next) {
   try {
     const owner = req.query.owner;
+    if (owner && !(await UserService.userExists(owner))) {
+      throw new CartError(`Owner ${owner} not found`, {
+        name: "NotFound",
+      });
+    }
     const cart = new CartDTO(await CartService.addCart(owner));
     sendSuccess(res, { cart });
   } catch (error) {
@@ -151,7 +162,7 @@ async function purchase(req, res, next) {
       purchase_datetime: new Date(),
     });
     sendSuccess(res, {
-      ticket,
+      ticket: new TicketDTO(ticket),
       purchased,
       not_purchased: not_purchased.length > 0 ? not_purchased : undefined,
     });

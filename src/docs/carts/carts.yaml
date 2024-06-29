@@ -1,0 +1,510 @@
+paths:
+  /api/carts:
+    get:
+      tags:
+        - Carts 
+      summary: Get all carts
+      description: "Auth required: admin"
+      responses:
+        "200": 
+          description: All carts returned from the database succesfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  carts:
+                    type: array
+                    items:
+                      $ref: "#components/schemas/Cart"
+        "300":
+          description: Not authenticated or authorized
+        "500":
+          description: Internal server error
+    post:
+      tags:
+        - Carts 
+      summary: Add a cart
+      description: "Auth required: admin"
+      parameters:
+        - in: query
+          name: owner
+          schema:
+            type: string
+            format: email
+            description: Email of the owner
+      responses:
+        "200":
+          description: Cart added succesfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  cart:
+                    $ref: "#components/schemas/Cart"
+                    description: The added cart
+        "300":
+          description: Not authenticated or authorized
+          content:
+            application/json:
+              schema:
+                $ref: "#components/schemas/ErrorStatus"
+        "404":
+          description: Owner not found
+          content:
+            application/json:
+              schema:
+                $ref: "#components/schemas/ErrorStatus"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#components/schemas/ErrorStatus"
+  /api/carts/{cid}:
+    parameters:
+    - in: path
+      name: cid
+      required: true
+      schema:
+        $ref: "#components/schemas/ObjectId"
+      description: Cart id
+    get:
+      tags:
+        - Carts
+      summary: Get a cart with populated products
+      description: "Auth required: admin or user that owns the cart"
+      responses:
+        "200":
+          description: Cart returned succesfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  cart:
+                    $ref: "#components/schemas/PopulatedCart"
+                    description: The cart found
+        "300":
+          description: Not authenticated or authorized
+          content:
+            application/json:
+              schema:
+                $ref: "#components/schemas/ErrorStatus"
+        "404":
+          description: Cart not found
+          content:
+            application/json:
+              schema:
+                $ref: "#components/schemas/ErrorStatus"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#components/schemas/ErrorStatus"
+    delete:
+      tags:
+        - Carts
+      summary: Empty a cart
+      description: "Auth required: admin or user that owns the cart"
+      responses:
+        "200":
+          description: Cart emptied succesfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+        "300":
+          description: Not authenticated or authorized
+          content:
+            application/json:
+              schema:
+                $ref: "#components/schemas/ErrorStatus"
+        "404":
+          description: Cart not found
+          content:
+            application/json:
+              schema:
+                $ref: "#components/schemas/ErrorStatus"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#components/schemas/ErrorStatus"
+  /api/carts/{cid}/products/:
+    parameters:
+    - in: path
+      name: cid
+      required: true
+      schema:
+        $ref: "#components/schemas/ObjectId"
+      description: Cart id
+    get:
+      tags:
+        - Carts
+      summary: Get the products in a cart
+      description: "Auth required: admin or user that owns the cart"
+      responses:
+        "200":
+          description: Cart products returned succesfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  products:
+                    type: array
+                    items:
+                      $ref: "#components/schemas/PopulatedCartProduct"
+                    description: The products in the cart
+        "300":
+          description: Not authenticated or authorized
+          content:
+            application/json:
+              schema:
+                $ref: "#components/schemas/ErrorStatus"
+        "404":
+          description: Cart not found
+          content:
+            application/json:
+              schema:
+                $ref: "#components/schemas/ErrorStatus"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#components/schemas/ErrorStatus"
+  /api/carts/{cid}/products/{pid}:
+    parameters:
+    - in: path
+      name: cid
+      required: true
+      schema:
+        $ref: "#components/schemas/ObjectId"
+      description: Cart id
+    - in: path
+      name: pid
+      required: true
+      schema:
+        $ref: "#components/schemas/ObjectId"
+      description: Product id
+    post:
+      tags:
+        - Carts
+      summary: Add product to cart
+      description: "Auth required: admin or user that owns the cart"
+      responses:
+        "200":
+          description: Product added succesfully to cart
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  cart:
+                    type: object
+                    $ref: "#components/schemas/PopulatedCart"
+                    description: The cart with populated products
+        "300":
+          description: Not authenticated or authorized
+          content:
+            application/json:
+              schema:
+                $ref: "#components/schemas/ErrorStatus"
+        "404":
+          description: Cart or product not found
+          content:
+            application/json:
+              schema:
+                $ref: "#components/schemas/ErrorStatus"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#components/schemas/ErrorStatus"
+    delete:
+      tags:
+        - Carts
+      summary: Remove product from cart
+      description: "Auth required: admin or user that owns the cart"
+      responses:
+        "200":
+          description: Product removed succesfully from cart
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  cart:
+                    type: object
+                    $ref: "#components/schemas/PopulatedCart"
+                    description: The cart with populated products
+        "300":
+          description: Not authenticated or authorized
+          content:
+            application/json:
+              schema:
+                $ref: "#components/schemas/ErrorStatus"
+        "404":
+          description: Cart or product not found
+          content:
+            application/json:
+              schema:
+                $ref: "#components/schemas/ErrorStatus"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#components/schemas/ErrorStatus"
+    put:
+      tags:
+        - Carts
+      summary: Update product quantity in cart
+      description: "Auth required: admin or user that owns the cart"
+  /api/carts/{cid}/purchase:
+    post:
+      tags:
+        - Carts
+      summary: Purchase cart and generate ticket
+      description: "Auth required: user that owns the cart"
+      parameters:
+      - in: path
+        name: cid
+        required: true
+        schema:
+          $ref: "#components/schemas/ObjectId"
+        description: Cart id
+      responses:
+        "200":
+          description: Cart purchased succesfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - status
+                  - ticket
+                  - purchased
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  ticket:
+                    type: object
+                    $ref: "#components/schemas/Ticket"
+                    description: The ticket generated after purchase
+                  purchased:
+                    type: array
+                    description: Purchased items
+                    items:
+                      $ref: "#components/schemas/CartProduct"
+                  not_purchased:
+                    $ref: "#components/schemas/not_purchased"
+        "300":
+          description: Not authenticated or authorized
+          content:
+            application/json:
+              schema:
+                $ref: "#components/schemas/ErrorStatus"
+        "404":
+          description: Cart not found
+          content:
+            application/json:
+              schema:
+                $ref: "#components/schemas/ErrorStatus"
+        "422":
+          description: Cart can't be purchased for other reasons like stock, empty cart, etc
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - status
+                  - message
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Error message
+                    description: A message providing error information 
+                  not_purchased:
+                    description: Array of not purchased items, only if the error is not enough stock
+                    $ref: "#components/schemas/not_purchased"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#components/schemas/ErrorStatus"
+    
+
+
+
+
+components:
+  schemas:
+    ObjectId:
+      type: string
+      format: ObjectId
+      example: 65f36bd074698997794661bb
+      description: unique id autogenerated by mongo, 24 hexadecimal digits
+    ErrorStatus:
+      type: object
+      required:
+        - status
+        - message
+      properties:
+        status:
+          type: string
+          example: error
+        message:
+          type: string
+          example: Error message
+    Cart:
+      type: object
+      properties:
+        id:
+          $ref: "#components/schemas/ObjectId"
+        products:
+          type: array
+          items: 
+            $ref: "#components/schemas/CartProduct"
+          description: Products that the cart contains
+        total:
+          type: number
+          example: 499.99
+        owner:
+          type: string
+          example: johndoe@mail.com
+    CartProduct:
+      type: object
+      properties:
+        id:
+          $ref: "#components/schemas/ObjectId"
+        quantity:
+          type: integer
+          description: Product quantity
+          example: 1
+    PopulatedCart:
+      type: object
+      properties:
+        id:
+          $ref: "#components/schemas/ObjectId"
+        products:
+          type: array
+          items: 
+            $ref: "#components/schemas/PopulatedCartProduct"
+          description: Products that the cart contains
+        total:
+          type: number
+          example: 499.99
+        owner:
+          type: string
+          example: johndoe@mail.com
+    PopulatedCartProduct:
+      type: object
+      properties:
+        id:
+          $ref: "#components/schemas/ObjectId"
+        title:
+          type: string
+          description: Product title
+          example: Samsung Smartphone
+        description:
+          type: string
+          description: Product description
+          example: Smartphone with AMOLED display and high-resolution camera. 
+        category:
+          type: string
+          description: Product category
+          example: Technology
+        price:
+          type: number
+          description: Product price
+          example: 699.99
+        stock:
+          type: integer
+          description: Product stock
+          example: 40
+        thumbnails:
+          type: array
+          items:
+            type: string
+            example: images/404-error.png
+          description: Product thumbnails
+        status:
+          type: boolean
+          example: true
+          description: Product availability status
+        code:
+          type: string
+          example: "SP005"
+          description: Short code that uniquely identifies the product
+        quantity:
+          type: integer
+          description: Product quantity in the cart
+          example: 1
+    Ticket:
+      type: object
+      properties:
+        purchase_datetime:
+          type: string
+          format: date-time
+          example: 2024-06-29T20:22:13.475Z
+        amount:
+          type: number
+          example: 199.99
+        purchaser:
+          type: string
+          format: email
+          example: john_doe@email.com
+        code:
+          type: string
+          example: 9E1F4GUJ
+          description: Unique ticket code, randomly generated
+    not_purchased:
+      description: An array of not purchased items
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            $ref: "#components/schemas/ObjectId"
+          stock:
+            type: integer
+            example: 50
+            description: Current stock of the item
+          requiredStock:
+            type: integer
+            example: 1000
+            description: The required stock to purchase the item

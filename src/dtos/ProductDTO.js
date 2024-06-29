@@ -9,7 +9,7 @@ class ProductDTO {
     this.thumbnails = product.thumbnails;
     this.status = product.status;
     this.code = product.code;
-    this.owner = product.owner == null ? "null" : product.owner.toString();
+    this.owner = product.owner == null ? undefined : product.owner.toString();
   }
 }
 module.exports = ProductDTO;

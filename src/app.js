@@ -3,6 +3,9 @@ const passport = require("passport");
 const initializePassport = require("./config/passport.config");
 const { addLogger, logger, enableDebugLogging } = require("./utils/logger.js");
 const { PORT, HOSTNAME, DEBUGGING } = require("./config/config");
+const swaggerUi = require("swagger-ui-express");
+const swaggerSpec = require("./swagger");
+
 if (DEBUGGING) {
   enableDebugLogging();
   logger.info(`${new Date().toUTCString()} | Debugging logs enabled`);
@@ -17,6 +20,7 @@ initializePassport();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("./src/public")); // Needs to be before passport
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use(require("cookie-parser")());
 app.use(addLogger);
 app.use(passport.initialize());
@@ -28,9 +32,9 @@ app.engine(
   exphbs.engine({
     handlebars:
       require("@handlebars/allow-prototype-access").allowInsecurePrototypeAccess(
-        require("handlebars"),
+        require("handlebars")
       ),
-  }),
+  })
 );
 app.set("view engine", "handlebars");
 app.set("views", "./src/views");
@@ -50,7 +54,9 @@ app.use(require("./middleware/ErrorHandler"));
 
 const httpServer = app.listen(PORT, () => {
   logger.info(
-    `${new Date().toUTCString()} | Server listening at ${HOSTNAME ? HOSTNAME : "localhost"}:${PORT}`,
+    `${new Date().toUTCString()} | Server listening at ${
+      HOSTNAME ? HOSTNAME : "localhost"
+    }:${PORT}`
   );
 });
 
