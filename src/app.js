@@ -20,7 +20,11 @@ initializePassport();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("./src/public")); // Needs to be before passport
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.use(
+  "/api-docs",
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerSpec, { customCssUrl: "/css/swaggerDark.css" }),
+);
 app.use(require("cookie-parser")());
 app.use(addLogger);
 app.use(passport.initialize());
@@ -32,9 +36,9 @@ app.engine(
   exphbs.engine({
     handlebars:
       require("@handlebars/allow-prototype-access").allowInsecurePrototypeAccess(
-        require("handlebars")
+        require("handlebars"),
       ),
-  })
+  }),
 );
 app.set("view engine", "handlebars");
 app.set("views", "./src/views");
@@ -56,7 +60,7 @@ const httpServer = app.listen(PORT, () => {
   logger.info(
     `${new Date().toUTCString()} | Server listening at ${
       HOSTNAME ? HOSTNAME : "localhost"
-    }:${PORT}`
+    }:${PORT}`,
   );
 });
 
