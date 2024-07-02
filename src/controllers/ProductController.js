@@ -211,7 +211,7 @@ async function add(req, res, next) {
     let result = await ProductService.addProduct({ ...req.body, owner });
     res.locals.send = {
       status: "success",
-      message: `Product added succesfully with id ${result.id}`,
+      product: new ProductDTO(result),
     };
     res.locals.products = await ProductService.getProducts();
     next();

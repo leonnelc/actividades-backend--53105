@@ -2,11 +2,11 @@ paths:
   /api/carts:
     get:
       tags:
-        - Carts 
+        - Carts
       summary: Get all carts
       description: "Auth required: admin"
       responses:
-        "200": 
+        "200":
           description: All carts returned from the database succesfully
           content:
             application/json:
@@ -15,7 +15,7 @@ paths:
                 properties:
                   status:
                     type: string
-                    example: success
+                    enum: [success]
                   carts:
                     type: array
                     items:
@@ -26,7 +26,7 @@ paths:
           description: Internal server error
     post:
       tags:
-        - Carts 
+        - Carts
       summary: Add a cart
       description: "Auth required: admin"
       parameters:
@@ -46,7 +46,7 @@ paths:
                 properties:
                   status:
                     type: string
-                    example: success
+                    enum: [success]
                   cart:
                     $ref: "#components/schemas/Cart"
                     description: The added cart
@@ -70,12 +70,12 @@ paths:
                 $ref: "#components/schemas/ErrorStatus"
   /api/carts/{cid}:
     parameters:
-    - in: path
-      name: cid
-      required: true
-      schema:
-        $ref: "#components/schemas/ObjectId"
-      description: Cart id
+      - in: path
+        name: cid
+        required: true
+        schema:
+          $ref: "#components/schemas/ObjectId"
+        description: Cart id
     get:
       tags:
         - Carts
@@ -91,7 +91,7 @@ paths:
                 properties:
                   status:
                     type: string
-                    example: success
+                    enum: [success]
                   cart:
                     $ref: "#components/schemas/PopulatedCart"
                     description: The cart found
@@ -128,7 +128,7 @@ paths:
                 properties:
                   status:
                     type: string
-                    example: success
+                    enum: [success]
         "300":
           description: Not authenticated or authorized
           content:
@@ -149,12 +149,12 @@ paths:
                 $ref: "#components/schemas/ErrorStatus"
   /api/carts/{cid}/products/:
     parameters:
-    - in: path
-      name: cid
-      required: true
-      schema:
-        $ref: "#components/schemas/ObjectId"
-      description: Cart id
+      - in: path
+        name: cid
+        required: true
+        schema:
+          $ref: "#components/schemas/ObjectId"
+        description: Cart id
     get:
       tags:
         - Carts
@@ -170,7 +170,7 @@ paths:
                 properties:
                   status:
                     type: string
-                    example: success
+                    enum: [success]
                   products:
                     type: array
                     items:
@@ -196,18 +196,18 @@ paths:
                 $ref: "#components/schemas/ErrorStatus"
   /api/carts/{cid}/products/{pid}:
     parameters:
-    - in: path
-      name: cid
-      required: true
-      schema:
-        $ref: "#components/schemas/ObjectId"
-      description: Cart id
-    - in: path
-      name: pid
-      required: true
-      schema:
-        $ref: "#components/schemas/ObjectId"
-      description: Product id
+      - in: path
+        name: cid
+        required: true
+        schema:
+          $ref: "#components/schemas/ObjectId"
+        description: Cart id
+      - in: path
+        name: pid
+        required: true
+        schema:
+          $ref: "#components/schemas/ObjectId"
+        description: Product id
     post:
       tags:
         - Carts
@@ -223,7 +223,7 @@ paths:
                 properties:
                   status:
                     type: string
-                    example: success
+                    enum: [success]
                   cart:
                     type: object
                     $ref: "#components/schemas/PopulatedCart"
@@ -261,7 +261,7 @@ paths:
                 properties:
                   status:
                     type: string
-                    example: success
+                    enum: [success]
                   cart:
                     type: object
                     $ref: "#components/schemas/PopulatedCart"
@@ -296,12 +296,12 @@ paths:
       summary: Purchase cart and generate ticket
       description: "Auth required: user that owns the cart"
       parameters:
-      - in: path
-        name: cid
-        required: true
-        schema:
-          $ref: "#components/schemas/ObjectId"
-        description: Cart id
+        - in: path
+          name: cid
+          required: true
+          schema:
+            $ref: "#components/schemas/ObjectId"
+          description: Cart id
       responses:
         "200":
           description: Cart purchased succesfully
@@ -316,7 +316,7 @@ paths:
                 properties:
                   status:
                     type: string
-                    example: success
+                    enum: [success]
                   ticket:
                     type: object
                     $ref: "#components/schemas/Ticket"
@@ -356,7 +356,7 @@ paths:
                   message:
                     type: string
                     example: Error message
-                    description: A message providing error information 
+                    description: A message providing error information
                   not_purchased:
                     description: Array of not purchased items, only if the error is not enough stock
                     $ref: "#components/schemas/not_purchased"
@@ -366,30 +366,9 @@ paths:
             application/json:
               schema:
                 $ref: "#components/schemas/ErrorStatus"
-    
-
-
-
 
 components:
   schemas:
-    ObjectId:
-      type: string
-      format: ObjectId
-      example: 65f36bd074698997794661bb
-      description: unique id autogenerated by mongo, 24 hexadecimal digits
-    ErrorStatus:
-      type: object
-      required:
-        - status
-        - message
-      properties:
-        status:
-          type: string
-          example: error
-        message:
-          type: string
-          example: Error message
     Cart:
       type: object
       properties:
@@ -397,7 +376,7 @@ components:
           $ref: "#components/schemas/ObjectId"
         products:
           type: array
-          items: 
+          items:
             $ref: "#components/schemas/CartProduct"
           description: Products that the cart contains
         total:
@@ -405,7 +384,8 @@ components:
           example: 499.99
         owner:
           type: string
-          example: johndoe@mail.com
+          format: email
+          description: Owner of the cart
     CartProduct:
       type: object
       properties:
@@ -422,7 +402,7 @@ components:
           $ref: "#components/schemas/ObjectId"
         products:
           type: array
-          items: 
+          items:
             $ref: "#components/schemas/PopulatedCartProduct"
           description: Products that the cart contains
         total:
@@ -430,12 +410,18 @@ components:
           example: 499.99
         owner:
           type: string
-          example: johndoe@mail.com
+          format: email
+          description: Owner of the cart
     PopulatedCartProduct:
       type: object
       properties:
         id:
           $ref: "#components/schemas/ObjectId"
+        owner:
+          type: string
+          format: email
+          nullable: true
+          description: If null, the owner is any admin
         title:
           type: string
           description: Product title
@@ -443,7 +429,7 @@ components:
         description:
           type: string
           description: Product description
-          example: Smartphone with AMOLED display and high-resolution camera. 
+          example: Smartphone with AMOLED display and high-resolution camera.
         category:
           type: string
           description: Product category
@@ -487,7 +473,6 @@ components:
         purchaser:
           type: string
           format: email
-          example: john_doe@email.com
         code:
           type: string
           example: 9E1F4GUJ
@@ -508,3 +493,4 @@ components:
             type: integer
             example: 1000
             description: The required stock to purchase the item
+

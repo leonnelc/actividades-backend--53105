@@ -1,0 +1,356 @@
+paths:
+  /api/products:
+    get:
+      tags:
+        - Products
+      summary: Get all products
+      description: "No auth required"
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+        - in: query
+          name: limit
+          description: product limit for each page
+          schema:
+            type: integer
+        - in: query
+          name: query
+          description: mongoose compatible filter query (optional)
+          schema:
+            type: object
+            example: { "price": { "$lte": 100 } }
+        - in: query
+          name: sort
+          description: Sort order, by price (optional)
+          schema:
+            type: string
+            enum: [asc, desc]
+      responses:
+        "200":
+          description: All products returned from the database succesfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [success]
+                  payload:
+                    type: array
+                    items:
+                      $ref: "#components/schemas/Product"
+                  totalPages:
+                    type: integer
+                  prevPage:
+                    type: integer
+                    nullable: true
+                  nextPage:
+                    type: integer
+                    nullable: true
+                  page:
+                    type: integer
+                    minimum: 1
+                    example: 2
+                  hasPrevPage:
+                    type: boolean
+                  hasNextPage:
+                    type: boolean
+                  prevLink:
+                    type: string
+                    format: url
+                    example: /api/products?page=1
+                    nullable: true
+                  nextLink:
+                    type: string
+                    format: url
+                    example: /api/products?page=3
+                    nullable: true
+        "300":
+          description: Not authenticated or authorized
+        "500":
+          description: Internal server error
+    post:
+      tags:
+        - Products
+      summary: Add a product
+      description: "Auth required: admin or premium"
+      requestBody:
+        description: Properties of the product to create (id is not required and will be ignored)
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#components/schemas/Product"
+      responses:
+        "200":
+          description: Product added succesfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [success]
+                  product:
+                    $ref: "#components/schemas/Product"
+                    description: The added product
+        "300":
+          description: Not authenticated or authorized
+          content:
+            application/json:
+              schema:
+                $ref: "#components/schemas/ErrorStatus"
+        "404":
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: "#components/schemas/ErrorStatus"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#components/schemas/ErrorStatus"
+  /api/products/{pid}:
+    parameters:
+      - in: path
+        name: pid
+        required: true
+        schema:
+          $ref: "#components/schemas/ObjectId"
+        description: Product id
+    get:
+      tags:
+        - Products
+      summary: Find a product by id
+      description: "No auth required"
+      responses:
+        "200":
+          description: Product returned succesfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [success]
+                  payload:
+                    $ref: "#components/schemas/Product"
+                    description: The product found
+        "300":
+          description: Not authenticated or authorized
+          content:
+            application/json:
+              schema:
+                $ref: "#components/schemas/ErrorStatus"
+        "404":
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: "#components/schemas/ErrorStatus"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#components/schemas/ErrorStatus"
+    delete:
+      tags:
+        - Products
+      summary: Delete a product
+      description: "Auth required: admin or premium that owns the product"
+      responses:
+        "200":
+          description: Product deleted succesfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [success]
+                  message:
+                    type: string
+                    enum: ["Product deleted succesfully"]
+        "300":
+          description: Not authenticated or authorized
+          content:
+            application/json:
+              schema:
+                $ref: "#components/schemas/ErrorStatus"
+        "404":
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: "#components/schemas/ErrorStatus"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#components/schemas/ErrorStatus"
+    put:
+      tags:
+        - Products
+      summary: Update a product
+      description: "Auth required: admin or premium that owns the product"
+      requestBody:
+        description: Properties of the product to update, all properties are optional and id will be ignored
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#components/schemas/Product"
+
+      responses:
+        "200":
+          description: Product updated succesfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [success]
+                  message:
+                    type: string
+                    enum: [Product updated succesfully]
+        "300":
+          description: Not authenticated or authorized
+          content:
+            application/json:
+              schema:
+                $ref: "#components/schemas/ErrorStatus"
+        "404":
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: "#components/schemas/ErrorStatus"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#components/schemas/ErrorStatus"
+
+  /api/products/code/{code}/:
+    parameters:
+      - in: path
+        name: code
+        required: true
+        schema:
+          type: string
+        description: Product code
+    get:
+      tags:
+        - Products
+      summary: Find a product by code
+      description: "No auth required"
+      responses:
+        "200":
+          description: Product returned succesfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [success]
+                  payload:
+                    $ref: "#components/schemas/Product"
+                    description: The product found
+        "300":
+          description: Not authenticated or authorized
+          content:
+            application/json:
+              schema:
+                $ref: "#components/schemas/ErrorStatus"
+        "404":
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: "#components/schemas/ErrorStatus"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#components/schemas/ErrorStatus"
+
+components:
+  schemas:
+    ObjectId:
+      type: string
+      format: ObjectId
+      example: 65f36bd074698997794661bb
+      description: unique id autogenerated by mongo, 24 hexadecimal digits
+    ErrorStatus:
+      type: object
+      required:
+        - status
+        - message
+      properties:
+        status:
+          type: string
+          example: error
+        message:
+          type: string
+          example: Error message
+    Product:
+      type: object
+      properties:
+        id:
+          $ref: "#components/schemas/ObjectId"
+        owner:
+          type: string
+          format: email
+          nullable: true
+          description: If null, the owner is any admin
+        title:
+          type: string
+          description: Product title
+          example: Samsung Smartphone
+        description:
+          type: string
+          description: Product description
+          example: Smartphone with AMOLED display and high-resolution camera.
+        category:
+          type: string
+          description: Product category
+          example: Technology
+        price:
+          type: number
+          description: Product price
+          example: 699.99
+        stock:
+          type: integer
+          description: Product stock
+          example: 40
+        thumbnails:
+          type: array
+          items:
+            type: string
+            example: images/404-error.png
+          description: Product thumbnails
+        status:
+          type: boolean
+          example: true
+          description: Product availability status
+        code:
+          type: string
+          example: "SP005"
+          description: Short code that uniquely identifies the product
