@@ -14,6 +14,16 @@ const usersSchema = new mongo.Schema({
     unique: true,
     index: true,
   },
+  documents: {
+    type: [
+      {
+        name: { type: String, required: true },
+        reference: { type: String, required: true },
+      },
+    ],
+    default: [],
+  },
+  last_connection: { type: Date, default: Date.now },
 });
 
 const User = mongo.model("User", usersSchema);
