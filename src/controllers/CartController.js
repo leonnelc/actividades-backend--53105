@@ -28,7 +28,7 @@ function checkOwnsCart(req, cid) {
 async function getCarts(req, res, next) {
   try {
     const carts = (await CartService.getCarts()).map(
-      (cart) => new CartDTO(cart)
+      (cart) => new CartDTO(cart),
     );
     sendSuccess(res, { carts });
   } catch (error) {
@@ -55,7 +55,7 @@ async function addProduct(req, res, next) {
     checkOwnsCartOrIsAdmin(req, cid);
     const product = await ProductService.getProductById(pid);
     if (req.user.id == product.owner) {
-      throw new CartError("Can't add owned product to cart");
+      throw new CartError("Can't add own product to cart");
     }
 
     let quantity = parseInt(req.query.quantity);
@@ -110,7 +110,7 @@ async function updateQuantity(req, res, next) {
       throw new CartError("Quantity not specified or isn't an integer");
     }
     const cart = new CartDTO(
-      await CartService.updateQuantity(cid, pid, quantity)
+      await CartService.updateQuantity(cid, pid, quantity),
     );
     sendSuccess(res, { cart });
   } catch (error) {
@@ -123,11 +123,11 @@ async function updateQuantityMany(req, res, next) {
     checkOwnsCartOrIsAdmin(req, cid);
     if (!Array.isArray(req.body)) {
       throw new CartError(
-        "Request body must be an array containing objects in the format {product:productId, quantity:Number}"
+        "Request body must be an array containing objects in the format {product:productId, quantity:Number}",
       );
     }
     const cart = new CartDTO(
-      await CartService.updateQuantityMany(cid, req.body)
+      await CartService.updateQuantityMany(cid, req.body),
     );
     sendSuccess(res, { cart });
   } catch (error) {
