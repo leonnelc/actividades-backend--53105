@@ -111,6 +111,32 @@ async function resetPassword(token, newPassword) {
   user.password = hash(newPassword);
   return await user.save();
 }
+async function addDocuments(uid, documents) {
+  const user = await findById(uid);
+  for (let doc of documents) {
+    if (
+      !["ID", "address_proof", "account_status_proof"].includes(doc.fieldname)
+    ) {
+      throw new APIError(`Invalid field name: ${doc.fieldname}`);
+    }
+    const oldIndex = user.documents.findIndex(
+      (oldDoc) => oldDoc.name == doc.fieldname,
+    );
+    const reference = `/api/users/${uid}/documents/${doc.filename}`;
+    if (oldIndex !== -1) {
+      user.documents[oldIndex].reference = reference;
+    } else {
+      user.documents.push({ name: doc.fieldname, reference });
+    }
+  }
+  await user.save();
+  return user.documents;
+}
+async function setAvatar(uid, url) {
+  const user = await findById(uid);
+  user.avatar = url;
+  await user.save();
+}
 
 module.exports = {
   findByEmail,
@@ -123,4 +149,6 @@ module.exports = {
   setRole,
   generateResetToken,
   resetPassword,
+  addDocuments,
+  setAvatar,
 };

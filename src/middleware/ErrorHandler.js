@@ -4,7 +4,7 @@ const AuthError = require("../services/errors/AuthError");
 const { JsonWebTokenError } = require("jsonwebtoken");
 
 function ErrorHandler(err, req, res, _next) {
-  const trace = err.stack.split("\n")[1].trim();
+  const trace = err.stack.split("\n")[1]?.trim() ?? "No stack trace";
   req.logger.warning({
     message: `${new Date().toUTCString()} | ${
       _next == "socket" ? "SOCKET | " : ""
@@ -75,6 +75,9 @@ function ErrorHandler(err, req, res, _next) {
       break;
     default:
       switch (err.name) {
+        case "MulterError":
+          send(400, err.message, { field: err.field });
+          break;
         case "CastError":
           if (err.kind == "ObjectId") {
             send(500, `${err.value} is not a valid id`);
@@ -88,8 +91,8 @@ function ErrorHandler(err, req, res, _next) {
               send(
                 500,
                 `Duplicated value of key that must be unique: ${Object.keys(
-                  err.keyValue
-                )}`
+                  err.keyValue,
+                )}`,
               );
               break;
             default:
