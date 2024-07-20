@@ -62,6 +62,8 @@ async function loginLocal(req, email, password, done) {
     ) {
       return done(new Error("Invalid credentials"));
     }
+    user.last_connection = new Date();
+    await user.save();
     setJWT(user, done);
   } catch (error) {
     return done(error);
@@ -85,6 +87,8 @@ async function loginGithub(req, accessToken, refreshToken, profile, done) {
       password: null,
       role: "user",
     });
+    user.last_connection = new Date();
+    await user.save();
     setJWT(user, done);
   } catch (error) {
     return done(error);
@@ -104,6 +108,8 @@ async function loginGoogle(req, accessToken, refreshToken, profile, done) {
       password: null,
       role: "user",
     });
+    user.last_connection = new Date();
+    await user.save();
     setJWT(user, done);
   } catch (error) {
     return done(error);
