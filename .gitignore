@@ -1,4 +1,5 @@
 node_modules
 errors.log
 data
-public/profiles
+src/public/profiles
+src/public/products
