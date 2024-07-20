@@ -1,13 +1,238 @@
-<h1 class="display-3 text-center mb-4">Your profile</h1>
-<div class="container">
-<div class="row justify-content-center">
-    <div class="col-7 col-md-5 col-lg-4 card bg-secondary border-0">
-        <div class="card-body">
-            <h3 class="card-title">{{user.first_name}} {{user.last_name}}</h3>
-            <p class="card-text">Email: {{user.email}}</p>
-            <p class="card-text">Age: {{#if user.age}}{{user.age}}{{else}}Unknown{{/if}}</p>
-            <p class="card-text">Role: {{user.role}}</p>
+<div class="bg-dark py-5 mb-5">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-4 text-center">
+        <div class="position-relative d-inline-block">
+          {{#if user.avatar}}
+          <img src="{{user.avatar}}" alt="{{user.first_name}} {{user.last_name}}"
+            class="rounded-circle img-thumbnail mb-3" style="width: 150px; height: 150px; object-fit: cover;">
+          {{else}}
+          <div class="bg-secondary rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+            style="width: 150px; height: 150px;">
+            <span class="fs-1 text-light">{{@root.helpers.firstChar user.first_name}}{{@root.helpers.firstChar
+              user.last_name}}</span>
+          </div>
+          {{/if}}
+          <button class="btn btn-primary btn-sm position-absolute bottom-0 end-0 m-2 upload-btn" data-bs-toggle="modal"
+            data-bs-target="#avatarUploadModal" style="display: none;">
+            <i class="bi bi-upload"></i>
+          </button>
         </div>
+      </div>
+      <div class="col-md-8">
+        <h1 class="display-4">{{user.first_name}} {{user.last_name}}</h1>
+        <p class="lead">{{user.role}}</p>
+      </div>
     </div>
+  </div>
 </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-6 mb-4">
+      <div class="card border-secondary">
+        <div class="card-header bg-secondary">
+          <h3 class="card-title mb-0">Personal Information</h3>
+        </div>
+        <div class="card-body">
+          <p class="mb-2"><strong>Email:</strong> {{user.email}}</p>
+          <p class="mb-2"><strong>Age:</strong> {{#if user.age}}{{user.age}}{{else}}Unknown{{/if}}</p>
+          <p class="mb-0"><strong>Role:</strong> {{user.role}}</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 mb-4">
+      <div class="card border-secondary">
+        <div class="card-header bg-secondary">
+          <h3 class="card-title mb-0">Documents</h3>
+        </div>
+        <div class="card-body">
+          <ul class="list-group list-group-flush">
+            <li
+              class="list-group-item d-flex justify-content-between align-items-center bg-dark text-light border-secondary">
+              ID
+              {{#if (lookup user.documents 'ID')}}
+              <a href="{{lookup user.documents 'ID'}}" class="text-success text-decoration-none" target="_blank">✓</a>
+              {{else}}
+              <span class="text-danger">✗</span>
+              {{/if}}
+            </li>
+            <li
+              class="list-group-item d-flex justify-content-between align-items-center bg-dark text-light border-secondary">
+              Address Proof
+              {{#if (lookup user.documents 'address_proof')}}
+              <a href="{{lookup user.documents 'address_proof'}}" class="text-success text-decoration-none"
+                target="_blank">✓</a>
+              {{else}}
+              <span class="text-danger">✗</span>
+              {{/if}}
+            </li>
+            <li
+              class="list-group-item d-flex justify-content-between align-items-center bg-dark text-light border-secondary">
+              Account Status Proof
+              {{#if (lookup user.documents 'account_status_proof')}}
+              <a href="{{lookup user.documents 'account_status_proof'}}" class="text-success text-decoration-none"
+                target="_blank">✓</a>
+              {{else}}
+              <span class="text-danger">✗</span>
+              {{/if}}
+            </li>
+          </ul>
+          <button class="btn btn-primary mt-3" data-bs-toggle="modal" data-bs-target="#documentUploadModal">
+            Upload Documents
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
+
+<!-- Avatar Upload Modal -->
+<div class="modal fade" id="avatarUploadModal" tabindex="-1" aria-labelledby="avatarUploadModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="avatarUploadModalLabel">Upload Avatar</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="uploadForm" enctype="multipart/form-data">
+          <div class="mb-3">
+            <label for="avatar" class="form-label">Avatar</label>
+            <input type="file" class="form-control" id="avatar" name="avatar" accept="image/*">
+          </div>
+          <button type="submit" class="btn btn-primary">Upload</button>
+        </form>
+        <div id="uploadStatus" class="mt-3" style="display: none;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Document Upload Modal -->
+<div class="modal fade" id="documentUploadModal" tabindex="-1" aria-labelledby="documentUploadModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="documentUploadModalLabel">Upload Documents</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="documentUploadForm" enctype="multipart/form-data">
+          <div>
+            <label for="ID" class="form-label">ID</label>
+            <input type="file" class="form-control" id="ID" name="ID">
+          </div>
+
+          <div class="mt-3">
+            <label for="address_proof" class="form-label">Proof of address</label>
+            <input type="file" class="form-control" id="address_proof" name="address_proof">
+          </div>
+
+          <div class="mt-3">
+            <label for="account_status_proof" class="form-label">Proof of account status</label>
+            <input type="file" class="form-control" id="account_status_proof" name="account_status_proof">
+          </div>
+
+          <button type="submit" class="btn btn-primary mt-3">Upload</button>
+        </form>
+        <div id="documentUploadStatus" class="mt-3" style="display: none;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+
+    // Avatar upload logic
+    const avatarContainer = document.querySelector('.position-relative');
+    const uploadBtn = avatarContainer.querySelector('.upload-btn');
+    const uploadForm = document.getElementById('uploadForm');
+    const uploadStatus = document.getElementById('uploadStatus');
+    const modal = new bootstrap.Modal(document.getElementById('avatarUploadModal'));
+
+    avatarContainer.addEventListener('mouseenter', function () {
+      uploadBtn.style.display = 'block';
+    });
+
+    avatarContainer.addEventListener('mouseleave', function () {
+      uploadBtn.style.display = 'none';
+    });
+
+    uploadForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      const formData = new FormData(this);
+
+      uploadStatus.style.display = 'block';
+      uploadStatus.textContent = 'Uploading...';
+      uploadStatus.className = 'mt-3 text-info';
+
+      fetch('/api/users/{{user.id}}/avatar', {
+        method: 'POST',
+        body: formData
+      })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return response.json();
+        })
+        .then(data => {
+          uploadStatus.textContent = 'Upload successful!';
+          uploadStatus.className = 'mt-3 text-success';
+          setTimeout(() => {
+            modal.hide();
+            location.reload();
+          }, 1500);
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          uploadStatus.textContent = 'Upload failed. Please try again.';
+          uploadStatus.className = 'mt-3 text-danger';
+        });
+    });
+
+    // Document upload logic
+    const documentUploadForm = document.getElementById('documentUploadForm');
+    const documentUploadStatus = document.getElementById('documentUploadStatus');
+    const documentModal = new bootstrap.Modal(document.getElementById('documentUploadModal'));
+
+    documentUploadForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      const formData = new FormData(this);
+
+      documentUploadStatus.style.display = 'block';
+      documentUploadStatus.textContent = 'Uploading...';
+      documentUploadStatus.className = 'mt-3 text-info';
+
+      fetch('/api/users/{{user.id}}/documents', {
+        method: 'POST',
+        body: formData
+      })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return response.json();
+        })
+        .then(data => {
+          documentUploadStatus.textContent = 'Upload successful!';
+          documentUploadStatus.className = 'mt-3 text-success';
+          setTimeout(() => {
+            documentModal.hide();
+            location.reload();
+          }, 1500);
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          documentUploadStatus.textContent = 'Upload failed. Please try again.';
+          documentUploadStatus.className = 'mt-3 text-danger';
+        });
+    });
+  });
+</script>

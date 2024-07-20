@@ -1,6 +1,8 @@
 const CartService = require("../services/CartService");
 const ProductService = require("../services/ProductService");
 const ChatService = require("../services/ChatService");
+const UserService = require("../services/UserService");
+const UserDTO = require("../dtos/UserDTO");
 const { buildQueryString } = require("./ControllerUtils");
 const ViewsError = require("../services/errors/ViewError");
 const jwt = require("jsonwebtoken");
@@ -169,7 +171,17 @@ async function chat(req, res, next) {
 }
 async function profile(req, res, next) {
   try {
-    res.render("profile", { user: req.user });
+    const fullUser = await UserService.findById(req.user.id);
+    const documents = {};
+    for (let doc of fullUser.documents) {
+      documents[doc.name] = doc.reference;
+    }
+    fullUser._doc.documents = documents;
+    const user = { ...fullUser._doc, ...new UserDTO(fullUser) };
+    res.render("profile", {
+      user,
+      helpers: { firstChar: (str) => (str ? str.charAt(0).toUpperCase() : "") },
+    });
   } catch (error) {
     next(new ViewsError(error.message));
   }
