@@ -47,6 +47,9 @@ async function togglePremium(req, res, next) {
   try {
     const { uid } = req.params;
     const user = await UserService.findById(uid);
+    if (uid != req.user.id && req.user.role != "admin") {
+      throw new APIError("Not authorized to change role of other users");
+    }
     if (user.role == "admin")
       throw new APIError("Admin role can't be changed using this method");
     if (user.role == "premium") {
@@ -55,8 +58,23 @@ async function togglePremium(req, res, next) {
         message: `User ${user.first_name} role set to user`,
       });
     }
+    const documents = {};
+    for (let doc of user.documents) {
+      documents[doc.name] = doc.reference;
+    }
+    if (
+      !documents.ID ||
+      !documents.address_proof ||
+      !documents.account_status_proof
+    ) {
+      throw new APIError(
+        `Missing documents: ID, proof of address and proof of account status are required to upgrade to premium role`,
+      );
+    }
     await UserService.setRole(uid, "premium");
-    sendSuccess(res, { message: `User ${user.first_name} role set to user` });
+    sendSuccess(res, {
+      message: `User ${user.first_name} role set to premium`,
+    });
   } catch (error) {
     next(error);
   }

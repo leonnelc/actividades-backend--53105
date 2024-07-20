@@ -2,9 +2,8 @@ const Router = require("express").Router();
 const UserController = require("../controllers/UserController");
 const { checkRoles } = require("../controllers/AuthController");
 const loggedin = checkRoles(["any"]);
-const checkAdmin = checkRoles(["admin"]);
 const notloggedin = checkRoles(["notloggedin"]);
-Router.get("/premium/:uid", checkAdmin, UserController.togglePremium);
+Router.get("/premium/:uid", loggedin, UserController.togglePremium);
 Router.get("/:uid/documents/:filename", loggedin, UserController.getDocument);
 Router.post(
   "/sendresetpassword",
