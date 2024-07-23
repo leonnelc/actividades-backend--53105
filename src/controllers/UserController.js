@@ -1,47 +1,8 @@
+const fs = require("fs");
 const UserService = require("../services/UserService");
 const MailService = require("../services/MailService");
 const APIError = require("../services/errors/APIError");
 const { sendSuccess } = require("./ControllerUtils");
-const fs = require("fs");
-const MAX_DOC_SIZE = 5 * 1024 * 1024; // 5 MB in bytes
-const MAX_PROFILE_SIZE = 2 * 1024 * 1024; // 2 MB in bytes
-const docs_allowed_mimetypes = ["image/png", "image/jpg", "application/pdf"];
-const avatar_allowed_mimetypes = ["image/png", "image/jpg"];
-const multer = require("multer");
-const multerUploadDocs = multer({
-  storage: multer.diskStorage({
-    destination: function (req, file, cb) {
-      if (!docs_allowed_mimetypes.includes(file.mimetype)) {
-        return cb(new APIError(`Mimetype not allowed: ${file.mimetype}`));
-      }
-      const dir = `${process.cwd()}/data/documents/${req.user.id}`;
-      fs.mkdirSync(dir, { recursive: true });
-      cb(null, dir);
-    },
-    filename: function (req, file, cb) {
-      const ext = `${file.mimetype.replace(/\//g, ".").split(".").pop()}`;
-      cb(null, `${file.fieldname}.${ext}`);
-    },
-  }),
-  limits: { fileSize: MAX_DOC_SIZE },
-});
-const multerUploadAvatar = multer({
-  storage: multer.diskStorage({
-    destination: function (req, file, cb) {
-      if (!avatar_allowed_mimetypes.includes(file.mimetype)) {
-        return cb(new APIError(`Mimetype not allowed: ${file.mimetype}`));
-      }
-      const dir = `${process.cwd()}/src/public/profiles/${req.user.id}`;
-      fs.mkdirSync(dir, { recursive: true });
-      cb(null, dir);
-    },
-    filename: function (req, file, cb) {
-      const ext = `${file.mimetype.replace(/\//g, ".").split(".").pop()}`;
-      cb(null, `${file.fieldname}.${ext}`);
-    },
-  }),
-  limits: { fileSize: MAX_PROFILE_SIZE },
-}).single("avatar");
 
 async function togglePremium(req, res, next) {
   try {
@@ -166,7 +127,5 @@ module.exports = {
   getUserByMail,
   uploadDocuments,
   uploadAvatar,
-  multerUploadDocs,
-  multerUploadAvatar,
   getDocument,
 };
