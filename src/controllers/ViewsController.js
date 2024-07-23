@@ -180,7 +180,10 @@ async function profile(req, res, next) {
     const user = { ...fullUser._doc, ...new UserDTO(fullUser) };
     res.render("profile", {
       user,
-      helpers: { firstChar: (str) => (str ? str.charAt(0).toUpperCase() : "") },
+      helpers: {
+        firstChar: (str) => (str ? str.charAt(0).toUpperCase() : ""),
+        eq: (a, b) => a === b,
+      },
     });
   } catch (error) {
     next(new ViewsError(error.message));

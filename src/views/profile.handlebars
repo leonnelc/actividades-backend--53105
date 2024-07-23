@@ -9,7 +9,7 @@
           {{else}}
           <div class="bg-secondary rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
             style="width: 150px; height: 150px;">
-            <span class="fs-1 text-light">{{@root.helpers.firstChar user.first_name}}{{@root.helpers.firstChar
+            <span class="fs-1 text-light">{{firstChar user.first_name}}{{firstChar
               user.last_name}}</span>
           </div>
           {{/if}}
@@ -37,7 +37,13 @@
         <div class="card-body">
           <p class="mb-2"><strong>Email:</strong> {{user.email}}</p>
           <p class="mb-2"><strong>Age:</strong> {{#if user.age}}{{user.age}}{{else}}Unknown{{/if}}</p>
-          <p class="mb-0"><strong>Role:</strong> {{user.role}}</p>
+          <p class="mb-2"><strong>Role:</strong> {{user.role}}</p>
+          {{#if (eq user.role "user")}}
+          <button id="premiumButton" class="btn btn-warning mt-3">Upgrade to Premium</button>
+          {{else if (eq user.role "premium")}}
+          <button id="premiumButton" class="btn btn-secondary mt-3">Switch to User</button>
+          {{/if}}
+          <div id="premiumStatus" class="mt-3" style="display: none;"></div>
         </div>
       </div>
     </div>
@@ -234,5 +240,42 @@
           documentUploadStatus.className = 'mt-3 text-danger';
         });
     });
+
+    // Premium upgrade/downgrade logic
+    const premiumButton = document.getElementById('premiumButton');
+    const premiumStatus = document.getElementById('premiumStatus');
+
+    if (premiumButton) {
+      premiumButton.addEventListener('click', function () {
+        premiumStatus.style.display = 'block';
+        premiumStatus.textContent = 'Processing...';
+        premiumStatus.className = 'mt-3 text-info';
+
+        fetch('/api/users/premium/{{user.id}}', {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+          }
+        })
+          .then(response => {
+            if (!response.ok) {
+              return response.json().then(err => {throw err;});
+            }
+            return response.json();
+          })
+          .then(data => {
+            premiumStatus.textContent = 'Success! Reloading page...';
+            premiumStatus.className = 'mt-3 text-success';
+            setTimeout(() => {
+              location.reload();
+            }, 1500);
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            premiumStatus.textContent = error.message || 'An error occurred. Please try again.';
+            premiumStatus.className = 'mt-3 text-danger';
+          });
+      });
+    }
   });
 </script>
