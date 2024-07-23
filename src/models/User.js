@@ -11,7 +11,7 @@ const usersSchema = new mongo.Schema({
   cart: {
     type: mongo.SchemaTypes.ObjectId,
     ref: "Cart",
-    required: true,
+    required: false,
     unique: true,
     index: true,
   },
