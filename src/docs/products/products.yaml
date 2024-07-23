@@ -69,7 +69,7 @@ paths:
                     format: url
                     example: /api/products?page=3
                     nullable: true
-        "300":
+        "403":
           description: Not authenticated or authorized
         "500":
           description: Internal server error
@@ -99,7 +99,7 @@ paths:
                   product:
                     $ref: "#components/schemas/Product"
                     description: The added product
-        "300":
+        "403":
           description: Not authenticated or authorized
           content:
             application/json:
@@ -144,7 +144,7 @@ paths:
                   payload:
                     $ref: "#components/schemas/Product"
                     description: The product found
-        "300":
+        "403":
           description: Not authenticated or authorized
           content:
             application/json:
@@ -181,7 +181,7 @@ paths:
                   message:
                     type: string
                     enum: ["Product deleted succesfully"]
-        "300":
+        "403":
           description: Not authenticated or authorized
           content:
             application/json:
@@ -226,7 +226,7 @@ paths:
                   message:
                     type: string
                     enum: [Product updated succesfully]
-        "300":
+        "403":
           description: Not authenticated or authorized
           content:
             application/json:
@@ -272,7 +272,7 @@ paths:
                   payload:
                     $ref: "#components/schemas/Product"
                     description: The product found
-        "300":
+        "403":
           description: Not authenticated or authorized
           content:
             application/json:

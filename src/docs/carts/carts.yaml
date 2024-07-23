@@ -20,7 +20,7 @@ paths:
                     type: array
                     items:
                       $ref: "#components/schemas/Cart"
-        "300":
+        "403":
           description: Not authenticated or authorized
         "500":
           description: Internal server error
@@ -50,7 +50,7 @@ paths:
                   cart:
                     $ref: "#components/schemas/Cart"
                     description: The added cart
-        "300":
+        "403":
           description: Not authenticated or authorized
           content:
             application/json:
@@ -95,7 +95,7 @@ paths:
                   cart:
                     $ref: "#components/schemas/PopulatedCart"
                     description: The cart found
-        "300":
+        "403":
           description: Not authenticated or authorized
           content:
             application/json:
@@ -129,7 +129,7 @@ paths:
                   status:
                     type: string
                     enum: [success]
-        "300":
+        "403":
           description: Not authenticated or authorized
           content:
             application/json:
@@ -176,7 +176,7 @@ paths:
                     items:
                       $ref: "#components/schemas/PopulatedCartProduct"
                     description: The products in the cart
-        "300":
+        "403":
           description: Not authenticated or authorized
           content:
             application/json:
@@ -228,7 +228,7 @@ paths:
                     type: object
                     $ref: "#components/schemas/PopulatedCart"
                     description: The cart with populated products
-        "300":
+        "403":
           description: Not authenticated or authorized
           content:
             application/json:
@@ -266,7 +266,7 @@ paths:
                     type: object
                     $ref: "#components/schemas/PopulatedCart"
                     description: The cart with populated products
-        "300":
+        "403":
           description: Not authenticated or authorized
           content:
             application/json:
@@ -328,7 +328,7 @@ paths:
                       $ref: "#components/schemas/CartProduct"
                   not_purchased:
                     $ref: "#components/schemas/not_purchased"
-        "300":
+        "403":
           description: Not authenticated or authorized
           content:
             application/json:

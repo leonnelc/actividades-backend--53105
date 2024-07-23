@@ -32,7 +32,7 @@ function ErrorHandler(err, req, res, _next) {
     case err instanceof APIError:
       switch (err.name) {
         case "NotAuthorized":
-          send(300, err.message);
+          send(403, err.message);
           break;
         case "NotFound":
           send(404, err.message);
@@ -63,15 +63,15 @@ function ErrorHandler(err, req, res, _next) {
       isView = err?.data?.isView ?? false;
       switch (err.name) {
         case "AlreadyLoggedInError":
-          send(300, err.message, { user: req.user }, "alreadyloggedin");
+          send(409, err.message, { user: req.user }, "alreadyloggedin");
           break;
         default:
-          send(300, err.message);
+          send(409, err.message);
       }
       break;
     case err instanceof JsonWebTokenError:
       isView = err?.data?.isView ?? false;
-      send(300, err.message);
+      send(400, err.message);
       break;
     default:
       switch (err.name) {
@@ -80,19 +80,19 @@ function ErrorHandler(err, req, res, _next) {
           break;
         case "CastError":
           if (err.kind == "ObjectId") {
-            send(500, `${err.value} is not a valid id`);
+            send(400, `${err.value} is not a valid id`);
             break;
           }
-          send(500, `The value ${err.value} is not a valid ${err.kind}`);
+          send(400, `The value ${err.value} is not a valid ${err.kind}`);
           break;
         case "MongoServerError":
           switch (err.code) {
             case 11000:
               send(
-                500,
+                400,
                 `Duplicated value of key that must be unique: ${Object.keys(
-                  err.keyValue,
-                )}`,
+                  err.keyValue
+                )}`
               );
               break;
             default:
