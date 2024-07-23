@@ -7,7 +7,9 @@ const config = dotenv.config({
 });
 if (config.error) {
   logger.fatal(
-    `${new Date().toUTCString()} | Error loading environment variables, reason:\n${config.error}`,
+    `${new Date().toUTCString()} | Error loading environment variables, reason:\n${
+      config.error
+    }`
   );
   process.exit(1);
 }
@@ -25,5 +27,6 @@ const configObject = {
   DEBUGGING: process.env.DEBUGGING === "true",
   MAIL_USER: process.env.MAIL_USER,
   MAIL_PASS: process.env.MAIL_PASS,
+  DISABLE_CACHE: process.env.DISABLE_CACHE === "true",
 };
 module.exports = configObject;

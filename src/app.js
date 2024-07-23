@@ -2,7 +2,7 @@ const express = require("express");
 const passport = require("passport");
 const initializePassport = require("./config/passport.config");
 const { addLogger, logger, enableDebugLogging } = require("./utils/logger.js");
-const { PORT, HOSTNAME, DEBUGGING } = require("./config/config");
+const { PORT, HOSTNAME, DEBUGGING, DISABLE_CACHE } = require("./config/config");
 const swaggerUi = require("swagger-ui-express");
 const swaggerSpec = require("./swagger");
 
@@ -23,12 +23,15 @@ app.use(express.static("./src/public")); // Needs to be before passport
 app.use(
   "/api-docs",
   swaggerUi.serve,
-  swaggerUi.setup(swaggerSpec, { customCssUrl: "/css/swaggerDark.css" }),
+  swaggerUi.setup(swaggerSpec, { customCssUrl: "/css/swaggerDark.css" })
 );
 app.use(require("cookie-parser")());
 app.use(addLogger);
 app.use(passport.initialize());
 app.use(require("./middleware/AuthMiddleware.js"));
+if (DISABLE_CACHE) {
+  app.use(require("./middleware/DisableCache"));
+}
 
 // express-handlebars & config
 app.engine(
@@ -36,9 +39,9 @@ app.engine(
   exphbs.engine({
     handlebars:
       require("@handlebars/allow-prototype-access").allowInsecurePrototypeAccess(
-        require("handlebars"),
+        require("handlebars")
       ),
-  }),
+  })
 );
 app.set("view engine", "handlebars");
 app.set("views", "./src/views");
@@ -60,7 +63,7 @@ const httpServer = app.listen(PORT, () => {
   logger.info(
     `${new Date().toUTCString()} | Server listening at ${
       HOSTNAME ? HOSTNAME : "localhost"
-    }:${PORT}`,
+    }:${PORT}`
   );
 });
 
