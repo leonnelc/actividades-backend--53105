@@ -5,13 +5,14 @@ const { addLogger, logger, enableDebugLogging } = require("./utils/logger.js");
 const { PORT, HOSTNAME, DEBUGGING, DISABLE_CACHE } = require("./config/config");
 const swaggerUi = require("swagger-ui-express");
 const swaggerSpec = require("./swagger");
+const compression = require("compression");
 
 if (DEBUGGING) {
   enableDebugLogging();
   logger.info(`${new Date().toUTCString()} | Debugging logs enabled`);
 }
 const app = express();
-
+app.use(compression());
 const exphbs = require("express-handlebars");
 
 initializePassport();
