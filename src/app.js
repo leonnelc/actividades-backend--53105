@@ -17,10 +17,16 @@ const exphbs = require("express-handlebars");
 
 initializePassport();
 
+const setHeaders = (res, _path, _stat) => {
+  res.set("Cache-Control", "public, max-age=86400"); // Cache for one day
+};
 // middlewares
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static("./src/public")); // Needs to be before passport
+app.use("/css", express.static("./src/public/css", { setHeaders }));
+app.use("/js", express.static("./src/public/js", { setHeaders }));
+app.use("/images", express.static("./src/public/images", { setHeaders }));
+app.use(express.static("./src/public")); // Static files need to be before passport
 app.use(
   "/api-docs",
   swaggerUi.serve,
