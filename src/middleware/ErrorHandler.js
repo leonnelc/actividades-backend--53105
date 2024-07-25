@@ -66,7 +66,7 @@ function ErrorHandler(err, req, res, _next) {
           send(409, err.message, { user: req.user }, "alreadyloggedin");
           break;
         default:
-          send(409, err.message);
+          send(401, err.message);
       }
       break;
     case err instanceof JsonWebTokenError:
@@ -91,8 +91,8 @@ function ErrorHandler(err, req, res, _next) {
               send(
                 400,
                 `Duplicated value of key that must be unique: ${Object.keys(
-                  err.keyValue
-                )}`
+                  err.keyValue,
+                )}`,
               );
               break;
             default:

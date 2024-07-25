@@ -1,10 +1,11 @@
 const UserService = require("../services/UserService");
+const AuthError = require("../services/errors/AuthError");
 const validator = require("email-validator");
 const UserDTO = require("../dtos/UserDTO");
 const jwt = require("jsonwebtoken");
 const { JWT_SECRET } = require("../config/config");
 
-function setJWT(user, done) {
+function createJWT(user, done) {
   const userdto = new UserDTO(user);
   const token = jwt.sign({ user: userdto }, JWT_SECRET, { expiresIn: "1d" });
   done(null, { user: userdto, token });
@@ -46,7 +47,7 @@ async function registerLocal(req, username, password, done) {
       role: "user",
       password,
     });
-    setJWT(user, done);
+    createJWT(user, done);
   } catch (error) {
     return done(error);
   }
@@ -60,11 +61,11 @@ async function loginLocal(req, email, password, done) {
       !user.password ||
       !UserService.isValidPassword(password, user.password)
     ) {
-      return done(new Error("Invalid credentials"));
+      return done(new AuthError("Invalid credentials"));
     }
     user.last_connection = new Date();
     await user.save();
-    setJWT(user, done);
+    createJWT(user, done);
   } catch (error) {
     return done(error);
   }
@@ -89,7 +90,7 @@ async function loginGithub(req, accessToken, refreshToken, profile, done) {
     });
     user.last_connection = new Date();
     await user.save();
-    setJWT(user, done);
+    createJWT(user, done);
   } catch (error) {
     return done(error);
   }
@@ -110,7 +111,7 @@ async function loginGoogle(req, accessToken, refreshToken, profile, done) {
     });
     user.last_connection = new Date();
     await user.save();
-    setJWT(user, done);
+    createJWT(user, done);
   } catch (error) {
     return done(error);
   }

@@ -7,8 +7,8 @@
 </div>
 {{else}}
 <div class="container text-center">
-  <form class="text-center" method="post" action="/api/sessions/register">
-    <h1 class="display-1 mb-4">Sign in</h1>
+  <form id="registerForm" class="text-center" method="post" action="/api/sessions/register">
+    <h1 class="display-1 mb-4">Sign up</h1>
     <div class="row justify-content-center">
       <!-- First name -->
       <div class="col-md-2 form-floating mb-3 align-items-center">
@@ -43,29 +43,26 @@
       <div class="col-md-2 form-floating mb-3">
         <input type="password" name="password-check" id="password-check" class="form-control"
           placeholder="Confirm password" required />
-        <label for="password-check" class="ms-3 text-wrap fs-6">Confirm
-          password</label>
-        <div class="invalid-feedback" id="password-mismatch-error">Passwords
-          do not match.</div>
+        <label for="password-check" class="ms-3 text-wrap fs-6">Confirm password</label>
+        <div class="invalid-feedback" id="password-mismatch-error">Passwords do not match.</div>
       </div>
     </div>
-    {{#if errorMessage}}<p class="text-wrap text-danger">{{errorMessage}}</p>{{/if}}
-
+    <div id="errorMessage" class="text-wrap text-danger" style="display: none;"></div>
     <!-- Submit button -->
-    <button type="submit" class="btn btn-primary btn-block mb-4">Sign up</button>
-
+    <button type="submit" class="btn btn-primary btn-block mb-4">
+      <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+      Sign up
+    </button>
     <!-- Register button -->
     <div class="text-center">
       <p>Already a member? <a href="login">Log in</a></p>
     </div>
     <div>
-      <p class="mb-0">Or sign in with
-      </p>
-      <a href="/api/sessions/github" target="_self" class="btn"><i class="bi bi-github"></i></a><a
-        href="/api/sessions/google" target="_self" class="btn"><i class="bi bi-google"></i></a>
+      <p class="mb-0">Or sign in with</p>
+      <a href="/api/sessions/github" class="btn js-oauth-link"><i class="bi bi-github"></i></a>
+      <a href="/api/sessions/google" class="btn js-oauth-link"><i class="bi bi-google"></i></a>
     </div>
   </form>
 </div>
 {{/if}}
-
 <script src="js/register.js"></script>

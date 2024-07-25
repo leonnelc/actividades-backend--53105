@@ -8,7 +8,6 @@ function checkRoles(roles, opts = { isView: false, isSocket: false }) {
     if (opts.isSocket) {
       next = () => {};
     }
-    req.logger.debug(`Checking if user is authenticated`);
     if (!req.user) {
       if (roles.length == 1 && roles[0] == "notloggedin") return next(); // for routes that explicitly need the user to not be logged in
       throw new AuthError("Not authenticated", {
@@ -16,28 +15,23 @@ function checkRoles(roles, opts = { isView: false, isSocket: false }) {
         data: { isView: opts.isView },
       });
     }
-    req.logger.debug(`Checking roles for ${req.user.first_name}`);
-    if (roles.length == 1 && roles[0] == "notloggedin")
+    if (roles[0] == "notloggedin")
       throw new AuthError("Already logged in", {
         name: "AlreadyLoggedInError",
         data: { isView: opts.isView },
       });
-    if (roles.length == 0 || roles[0] == "any") return next(); // any logged user will have access if roles = ["any"] or []
+    if (roles[0] == "any") return next(); // any logged user will have access if roles = ["any"]
     const role = req.user?.role;
     if (!roles.includes(role)) {
-      req.logger.debug(`${role} not found in ${roles}`);
       throw new AuthError("Not authorized", {
         name: "NotAuthorized",
         data: { isView: opts.isView },
       });
     }
-    req.logger.debug(`${role} found in ${roles}`);
     next();
   }
   return check;
 }
-
-// TODO: make cookie settings use environment variables
 
 const setJWTCookie = (req, res) => {
   res.cookie("jwt", req.user.token, {
@@ -65,17 +59,15 @@ async function registerLocal(req, res, next) {
     { session: false },
     (err, user, info, status) => {
       if (err) {
-        req.logger.warning(`Login attempt failed: ${err.message}`);
-        return res.redirect(`/register?err=${err.message}`);
+        req.logger.warning(`Register attempt failed: ${err.message}`);
+        return next(err);
       }
       if (!user) {
-        return next(
-          new AuthError("Authentication error", { data: { isView: true } }),
-        );
+        return next(new AuthError(info.message || "Registration error"));
       }
       req.user = user;
       setJWTCookie(req, res);
-      res.redirect("/profile");
+      sendSuccess(res, { message: "Register success" });
     },
   )(req, res, next);
 }
@@ -86,16 +78,14 @@ async function loginLocal(req, res, next) {
     (err, user, info, status) => {
       if (err) {
         req.logger.warning(`Login attempt failed: ${err.message}`);
-        return res.redirect(`/login?err=${err.message}`);
+        return next(err);
       }
       if (!user) {
-        return next(
-          new AuthError("Authentication error", { data: { isView: true } }),
-        );
+        return next(new AuthError(info.message || "Authentication error"));
       }
       req.user = user;
       setJWTCookie(req, res);
-      res.redirect("/profile");
+      sendSuccess(res, { message: "Logged in succesfully" });
     },
   )(req, res, next);
 }
@@ -113,16 +103,14 @@ async function githubCallback(req, res, next) {
     (err, user, info, status) => {
       if (err) {
         req.logger.warning(`Github login attempt failed: ${err.message}`);
-        return res.redirect(`/login?err=${err.message}`);
+        return next(err);
       }
       if (!user) {
-        return next(
-          new AuthError("Authentication error", { data: { isView: true } }),
-        );
+        return next(new AuthError(info.message || "Authentication error"));
       }
       req.user = user;
       setJWTCookie(req, res);
-      res.redirect("/profile");
+      sendSuccess(res, { message: "Logged in succesfully" });
     },
   )(req, res, next);
 }
@@ -141,16 +129,14 @@ async function googleCallback(req, res, next) {
     (err, user, info, status) => {
       if (err) {
         req.logger.warning(`Google login attempt failed: ${err.message}`);
-        return res.redirect(`/login?err=${err.message}`);
+        return next(err);
       }
       if (!user) {
-        return next(
-          new AuthError("Authentication error", { data: { isView: true } }),
-        );
+        return next(new AuthError(info.message || "Authentication error"));
       }
       req.user = user;
       setJWTCookie(req, res);
-      res.redirect("/profile");
+      sendSuccess(res, { message: "Logged in succesfully" });
     },
   )(req, res, next);
 }
