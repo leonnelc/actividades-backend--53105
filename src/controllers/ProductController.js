@@ -11,6 +11,13 @@ const ownsProduct = (user, product) => {
   }
   return false;
 };
+function ProductsDTO(products) {
+  const productsDTO = [];
+  for (let product of products) {
+    productsDTO.push(new ProductDTO(product));
+  }
+  return productsDTO;
+}
 function socketHandler(io, socket) {
   // TODO: use namespaces instead of a "rtproducts:" prefix
   function isInRoom() {
@@ -29,7 +36,10 @@ function socketHandler(io, socket) {
   socket.on("rtproducts:getProductList", async () => {
     if (!isInRoom()) return;
 
-    socket.emit("rtproducts:productList", await ProductService.getProducts());
+    socket.emit(
+      "rtproducts:productList",
+      ProductsDTO(await ProductService.getProducts()),
+    );
   });
   socket.on("rtproducts:deleteProduct", async (pid) => {
     if (!isInRoom()) return;
@@ -40,10 +50,7 @@ function socketHandler(io, socket) {
         throw new ProductError(`Not authorized to delete product id ${pid}`);
       }
       await ProductService.deleteProduct(pid);
-      io.to("rtproducts").emit(
-        "rtproducts:productList",
-        await ProductService.getProducts(),
-      );
+      io.to("rtproducts").emit("rtproducts:deleteProduct", pid);
     } catch (error) {
       ErrorHandler(error, socket.data, socket, "socket");
     }
@@ -53,10 +60,10 @@ function socketHandler(io, socket) {
     try {
       const owner =
         socket.data.user.role == "admin" ? null : socket.data.user.id;
-      await ProductService.addProduct({ ...product, owner });
+      const newProduct = await ProductService.addProduct({ ...product, owner });
       io.to("rtproducts").emit(
-        "rtproducts:productList",
-        await ProductService.getProducts(),
+        "rtproducts:addProduct",
+        new ProductDTO(newProduct),
       );
     } catch (error) {
       ErrorHandler(error, socket.data, socket, "socket");
@@ -79,7 +86,10 @@ function socketHandler(io, socket) {
         product.id,
         product,
       );
-      io.to("rtproducts").emit("rtproducts:productUpdate", updatedProduct);
+      io.to("rtproducts").emit(
+        "rtproducts:updateProduct",
+        new ProductDTO(updatedProduct),
+      );
     } catch (error) {
       ErrorHandler(error, socket.data, socket, "socket");
     }
@@ -137,7 +147,7 @@ async function getProducts(req, res, next) {
         page: result.page + 1,
       });
     }
-    let payload = result.docs;
+    let payload = ProductsDTO(result.docs);
     sendSuccess(res, {
       payload,
       totalPages,
@@ -156,7 +166,7 @@ async function getProducts(req, res, next) {
 async function getById(req, res, next) {
   try {
     const product = await ProductService.getProductById(req.params.pid);
-    sendSuccess(res, { payload: product });
+    sendSuccess(res, { payload: new ProductDTO(product) });
   } catch (error) {
     next(new ProductError(error.message));
   }
@@ -164,7 +174,7 @@ async function getById(req, res, next) {
 async function getByCode(req, res, next) {
   try {
     const product = await ProductService.getProductByCode(req.params.code);
-    sendSuccess(res, { payload: product });
+    sendSuccess(res, { payload: new ProductDTO(product) });
   } catch (error) {
     next(new ProductError(error.message));
   }
@@ -176,12 +186,12 @@ async function update(req, res, next) {
       throw new Error(`Not authorized to update product id ${pid}`);
     }
 
-    await ProductService.updateProduct(pid, req.body);
+    const product = await ProductService.updateProduct(pid, req.body);
     res.locals.send = {
       status: "success",
       message: "Product updated succesfully",
     };
-    res.locals.products = await ProductService.getProducts();
+    res.locals.product = new ProductDTO(product);
     next();
   } catch (error) {
     next(new ProductError(error.message));
@@ -199,7 +209,7 @@ async function deleteProduct(req, res, next) {
       status: "success",
       message: "Product deleted succesfully",
     };
-    res.locals.products = await ProductService.getProducts();
+    res.locals.product = pid;
     next();
   } catch (error) {
     next(new ProductError(error.message));
@@ -208,12 +218,14 @@ async function deleteProduct(req, res, next) {
 async function add(req, res, next) {
   try {
     const owner = req.user.role == "admin" ? null : req.user.id;
-    let result = await ProductService.addProduct({ ...req.body, owner });
+    let result = new ProductDTO(
+      await ProductService.addProduct({ ...req.body, owner }),
+    );
     res.locals.send = {
       status: "success",
-      product: new ProductDTO(result),
+      product: result,
     };
-    res.locals.products = await ProductService.getProducts();
+    res.locals.product = result;
     next();
   } catch (error) {
     next(new ProductError(error.message));

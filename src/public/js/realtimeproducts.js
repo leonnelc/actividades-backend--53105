@@ -1,162 +1,228 @@
 const socket = io();
 const errmsg = document.getElementById("errmsg");
+const addProductForm = document.getElementById("addProductForm");
+const addProductModal = new bootstrap.Modal(
+  document.getElementById("addProductModal"),
+);
+const updateProductForm = document.getElementById("updateProductForm");
+const updateProductModal = new bootstrap.Modal(
+  document.getElementById("updateProductModal"),
+);
+
 socket.emit("rtproducts:join");
 socket.on("rtproducts:success", () => {
   console.log("Success joining to rtproducts");
   socket.emit("rtproducts:getProductList");
 });
+
 let user;
 socket.on("user", (data) => {
   user = data;
 });
+
 document
-  .getElementById("addProductBtn")
-  .addEventListener("click", openAddProductDialog);
-function openAddProductDialog() {
-  Swal.fire({
-    title: "Add Product",
-    html: `
-      <input id="formTitle" class="swal2-input" placeholder="Title">
-      <input id="formDescription" class="swal2-input" placeholder="Description">
-      <input id="formPrice" class="swal2-input" placeholder="Price" type="number" step="any">
-      <input id="formThumbnails" class="swal2-input" placeholder="Thumbnail">
-      <input id="formCode" class="swal2-input" placeholder="Code">
-      <input id="formStock" class="swal2-input" placeholder="Stock" type="number">
-      <input id="formCategory" class="swal2-input" placeholder="Category">
-      <div class="swal2-status-container">
-        <label class="swal2-status-label">
-          <input id="formStatus" type="checkbox" checked>
-          Status
-        </label>
-      </div>
-    `,
-    focusConfirm: false,
-    preConfirm: () => {
-      const title = document.getElementById("formTitle").value;
-      const description = document.getElementById("formDescription").value;
-      const price = parseFloat(document.getElementById("formPrice").value);
-      const thumbnail = document.getElementById("formThumbnails").value;
-      const code = document.getElementById("formCode").value;
-      const stock = parseInt(document.getElementById("formStock").value);
-      const category = document.getElementById("formCategory").value;
-      const status = document.getElementById("formStatus").checked;
+  .getElementById("submitAddProduct")
+  .addEventListener("click", handleAddProduct);
+document
+  .getElementById("submitUpdateProduct")
+  .addEventListener("click", handleUpdateProduct);
 
-      if (
-        !title ||
-        !description ||
-        isNaN(price) ||
-        !code ||
-        isNaN(stock) ||
-        !category
-      ) {
-        Swal.showValidationMessage("Please fill in all required fields");
-      }
+function handleAddProduct() {
+  if (addProductForm.checkValidity()) {
+    const product = {
+      title: document.getElementById("formTitle").value,
+      description: document.getElementById("formDescription").value,
+      price: parseFloat(document.getElementById("formPrice").value),
+      thumbnails: [document.getElementById("formThumbnails").value],
+      code: document.getElementById("formCode").value,
+      stock: parseInt(document.getElementById("formStock").value),
+      category: document.getElementById("formCategory").value,
+      status: document.getElementById("formStatus").checked,
+    };
+    addProduct(product);
+    addProductModal.hide();
+    addProductForm.reset();
+  } else {
+    addProductForm.reportValidity();
+  }
+}
 
-      return {
-        title,
-        description,
-        price,
-        thumbnail,
-        code,
-        stock,
-        category,
-        status,
-      };
-    },
-  }).then((result) => {
-    if (result.isConfirmed) {
-      const newProduct = result.value;
-      console.log("Adding product:", newProduct);
-      addProduct(newProduct);
-    }
-  });
+function handleUpdateProduct() {
+  if (updateProductForm.checkValidity()) {
+    const product = {
+      id: document.getElementById("submitUpdateProduct").dataset.id,
+      title: document.getElementById("updateFormTitle").value,
+      description: document.getElementById("updateFormDescription").value,
+      price: parseFloat(document.getElementById("updateFormPrice").value),
+      thumbnails: [document.getElementById("updateFormThumbnails").value],
+      stock: parseInt(document.getElementById("updateFormStock").value),
+      category: document.getElementById("updateFormCategory").value,
+      status: document.getElementById("updateFormStatus").checked,
+    };
+    updateProduct(product);
+    updateProductModal.hide();
+    updateProductForm.reset();
+  } else {
+    updateProductForm.reportValidity();
+  }
+}
+function populateUpdateProductModal(product) {
+  document.getElementById("updateFormTitle").value = product.title;
+  document.getElementById("updateFormDescription").value = product.description;
+  document.getElementById("updateFormPrice").value = product.price;
+  document.getElementById("updateFormThumbnails").value = product.thumbnails;
+  document.getElementById("updateFormStock").value = product.stock;
+  document.getElementById("updateFormCategory").value = product.category;
+  document.getElementById("updateFormStatus").checked = product.status;
+  document.getElementById("submitUpdateProduct").dataset.id = product.id;
 }
 
 function deleteProduct(id) {
   errmsg.textContent = "";
   socket.emit("rtproducts:deleteProduct", id);
 }
-function addProduct() {
+
+function addProduct(product) {
   errmsg.textContent = "";
-  const title = document.getElementById("formTitle");
-  const description = document.getElementById("formDescription");
-  const price = document.getElementById("formPrice");
-  const thumbnails = document.getElementById("formThumbnails");
-  const code = document.getElementById("formCode");
-  const stock = document.getElementById("formStock");
-  const category = document.getElementById("formCategory");
-  const status = document.getElementById("formStatus");
-  const product = {
-    title: title.value,
-    description: description.value,
-    price: price.value,
-    thumbnails: [thumbnails.value],
-    code: code.value,
-    stock: stock.value,
-    category: category.value,
-    status: status.value == "on",
-  };
   socket.emit("rtproducts:addProduct", product);
 }
-const productContainer = document.getElementById("product-container");
-function ownsProduct(product) {
-  if (user?.role == "admin" || user?.id == product.owner) {
-    return true;
-  }
-  return false;
+function updateProduct(product) {
+  errmsg.textContent = "";
+  socket.emit("rtproducts:updateProduct", product);
 }
+
+const productContainer = document.getElementById("product-container");
+
+function ownsProduct(product) {
+  return user?.role == "admin" || user?.id == product.owner;
+}
+
+function deleteProductCard(id) {
+  const card = document.getElementById(id);
+  if (!card) {
+    return;
+  }
+  card.remove();
+}
+
+function updateProductCard(product) {
+  if (!ownsProduct(product)) {
+    return;
+  }
+  const card = document.getElementById(product.id);
+  if (!card) {
+    return addProductCard(product);
+  }
+
+  const imageUrl =
+    product.thumbnails && product.thumbnails.length > 0
+      ? product.thumbnails[0]
+      : "";
+  const imageHtml = imageUrl
+    ? `<img src="${imageUrl}" class="card-img-top" alt="${product.title}">`
+    : "";
+
+  card.innerHTML = `
+    <div class="card h-100 animation-lift-shadowless border-0 bg-dark-subtle">
+      ${imageHtml}
+      <div class="card-body d-flex flex-column">
+        <h5 class="card-title">${product.title}</h5>
+        <p class="card-text flex-grow-1">${product.description}</p>
+        <p class="card-text"><strong>Price:</strong> $${product.price}</p>
+        <p class="card-text"><strong>Stock:</strong> ${product.stock}</p>
+        <p class="card-text"><small class="text-muted">Owner ID: ${product.owner ?? "admin"}</small></p>
+        <button class="btn btn-primary mt-auto mb-2 update-btn" data-id="${product.id}" data-bs-toggle="modal" data-bs-target="#updateProductModal">Update</button>
+        <button class="btn btn-danger mt-auto delete-btn" data-id="${product.id}">Delete</button>
+      </div>
+    </div>
+  `;
+
+  card.querySelector(".delete-btn").addEventListener("click", () => {
+    deleteProduct(product.id);
+  });
+
+  card.querySelector(".update-btn").addEventListener("click", () => {
+    populateUpdateProductModal(product);
+  });
+}
+
 function addProductCard(product) {
   if (!ownsProduct(product)) {
     return;
   }
   const card = document.createElement("div");
-  card.classList.add("product-card");
+  card.classList.add(
+    "col",
+    "col-12",
+    "col-sm-5",
+    "col-md-3",
+    "col-lg-2",
+    "m-0",
+    "my-3",
+    "m-sm-1",
+    "m-md-2",
+  );
+  card.id = product.id;
 
-  const title = document.createElement("h2");
-  title.textContent = product.title;
-  card.appendChild(title);
+  const imageUrl =
+    product.thumbnails && product.thumbnails.length > 0
+      ? product.thumbnails[0]
+      : "";
+  const imageHtml = imageUrl
+    ? `<img src="${imageUrl}" class="card-img-top" alt="${product.title}">`
+    : "";
 
-  const description = document.createElement("p");
-  description.textContent = product.description;
-  card.appendChild(description);
+  card.innerHTML = `
+    <div class="card h-100 animation-lift-shadowless border-0 bg-dark-subtle">
+      ${imageHtml}
+      <div class="card-body d-flex flex-column">
+        <h5 class="card-title">${product.title}</h5>
+        <p class="card-text flex-grow-1">${product.description}</p>
+        <p class="card-text"><strong>Price:</strong> $${product.price}</p>
+        <p class="card-text"><strong>Stock:</strong> ${product.stock}</p>
+        <p class="card-text"><small class="text-muted">Owner ID: ${product.owner ?? "admin"}</small></p>
+        <button class="btn btn-primary mt-auto mb-2 update-btn" data-id="${product.id}" data-bs-toggle="modal" data-bs-target="#updateProductModal">Update</button>
+        <button class="btn btn-danger mt-auto delete-btn" data-id="${product.id}">Delete</button>
+      </div>
+    </div>
+  `;
 
-  const price = document.createElement("span");
-  price.textContent = `$${product.price}`;
-  card.appendChild(price);
-
-  const br = document.createElement("br");
-  card.appendChild(br);
-
-  const stock = document.createElement("span");
-  stock.textContent = `Stock: ${product.stock}`;
-  card.appendChild(stock);
-
-  const thumbnails = document.createElement("div");
-  product.thumbnails.forEach((thumbnail) => {
-    const img = document.createElement("img");
-    img.src = thumbnail;
-    thumbnails.appendChild(img);
+  card.querySelector(".delete-btn").addEventListener("click", () => {
+    deleteProduct(product.id);
   });
-  card.appendChild(thumbnails);
 
-  const owner = document.createElement("span");
-  owner.textContent = `Owner id: ${product.owner ?? "admin"}`;
-  card.appendChild(owner);
-
-  const deleteButton = document.createElement("button");
-  deleteButton.textContent = "Delete";
-  deleteButton.onclick = () => {
-    deleteProduct(product._id);
-  };
-  card.appendChild(deleteButton);
+  card.querySelector(".update-btn").addEventListener("click", () => {
+    populateUpdateProductModal(product);
+  });
 
   productContainer.appendChild(card);
 }
+
 socket.on("rtproducts:productList", (products) => {
   productContainer.innerHTML = "";
-
   products.forEach(addProductCard);
 });
+
+socket.on("rtproducts:addProduct", (product) => {
+  addProductCard(product);
+});
+
+socket.on("rtproducts:updateProduct", (product) => {
+  updateProductCard(product);
+});
+
+socket.on("rtproducts:updateProducts", (products) => {
+  products.forEach(updateProductCard);
+});
+
+socket.on("rtproducts:deleteProduct", (id) => {
+  deleteProductCard(id);
+});
+
+socket.on("rtproducts:deleteProducts", (ids) => {
+  ids.forEach(deleteProductCard);
+});
+
 socket.on("error", (message) => {
   errmsg.textContent = message;
 });

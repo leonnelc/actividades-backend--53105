@@ -1,8 +1,101 @@
+<div class="container-fluid px-4 py-5">
+  <div class="row justify-content-center">
+    <div class="col-12 col-xl-10">
+      <h1 class="mb-4">Products</h1>
+      <button type="button" class="btn btn-primary mb-4" data-bs-toggle="modal" data-bs-target="#addProductModal">
+        Add Product
+      </button>
+      <p id="errmsg" class="text-danger"></p>
+      <div id="product-container" class="row justify-content-center"></div>
+    </div>
+  </div>
+</div>
 
-<button id="addProductBtn">Add product</button>
-<p id="errmsg"></p>
-<div id="product-container"></div>
-
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<!-- Add Product Modal -->
+<div class="modal fade" id="addProductModal" tabindex="-1" aria-labelledby="addProductModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addProductModalLabel">Add Product</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="addProductForm">
+          <div class="mb-3">
+            <input id="formTitle" class="form-control" placeholder="Title" required>
+          </div>
+          <div class="mb-3">
+            <textarea id="formDescription" class="form-control" placeholder="Description" required></textarea>
+          </div>
+          <div class="mb-3">
+            <input id="formPrice" class="form-control" placeholder="Price" type="number" step="any" required>
+          </div>
+          <div class="mb-3">
+            <input id="formThumbnails" class="form-control" placeholder="Thumbnail URL">
+          </div>
+          <div class="mb-3">
+            <input id="formCode" class="form-control" placeholder="Code" required>
+          </div>
+          <div class="mb-3">
+            <input id="formStock" class="form-control" placeholder="Stock" type="number" required>
+          </div>
+          <div class="mb-3">
+            <input id="formCategory" class="form-control" placeholder="Category" required>
+          </div>
+          <div class="form-check">
+            <input id="formStatus" class="form-check-input" type="checkbox" checked>
+            <label class="form-check-label" for="formStatus">Status</label>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" id="submitAddProduct">Add Product</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Update Product Modal -->
+<div class="modal fade" id="updateProductModal" tabindex="-1" aria-labelledby="updateProductModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="updateProductModalLabel">Update Product</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="updateProductForm">
+          <div class="mb-3">
+            <input id="updateFormTitle" class="form-control" placeholder="Title">
+          </div>
+          <div class="mb-3">
+            <textarea id="updateFormDescription" class="form-control" placeholder="Description"></textarea>
+          </div>
+          <div class="mb-3">
+            <input id="updateFormPrice" class="form-control" placeholder="Price" type="number" step="any">
+          </div>
+          <div class="mb-3">
+            <input id="updateFormThumbnails" class="form-control" placeholder="Thumbnail URL">
+          </div>
+          <div class="mb-3">
+            <input id="updateFormStock" class="form-control" placeholder="Stock" type="number">
+          </div>
+          <div class="mb-3">
+            <input id="updateFormCategory" class="form-control" placeholder="Category">
+          </div>
+          <div class="form-check">
+            <input id="updateFormStatus" class="form-check-input" type="checkbox" checked>
+            <label class="form-check-label" for="updateFormStatus">Status</label>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" id="submitUpdateProduct">Update Product</button>
+      </div>
+    </div>
+  </div>
+</div>
 <script src="https://cdn.socket.io/4.7.3/socket.io.min.js"></script>
 <script src="js/realtimeproducts.js"></script>
