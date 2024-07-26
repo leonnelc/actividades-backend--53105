@@ -11,6 +11,7 @@ socket.on("chat:success", () => {
   socket.emit("getUser");
 });
 socket.on("user", (user) => {
+  if (currentUser) return;
   currentUser = user;
   checkMessages();
 });
@@ -27,7 +28,10 @@ function checkMessages() {
 
     const updateBtn = document.createElement("i");
     updateBtn.onclick = () => {
-      socket.emit("chat:updateMessage", { id: msg.id, message: messageBox.value });
+      socket.emit("chat:updateMessage", {
+        id: msg.id,
+        message: messageBox.value,
+      });
     };
     updateBtn.classList.add("bi", "bi-pencil");
     const deleteBtn = document.createElement("i");
