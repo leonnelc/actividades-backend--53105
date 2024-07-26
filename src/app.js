@@ -30,7 +30,7 @@ app.use(express.static("./src/public")); // Static files need to be before passp
 app.use(
   "/api-docs",
   swaggerUi.serve,
-  swaggerUi.setup(swaggerSpec, { customCssUrl: "/css/swaggerDark.css" })
+  swaggerUi.setup(swaggerSpec, { customCssUrl: "/css/swaggerDark.css" }),
 );
 app.use(require("cookie-parser")());
 app.use(addLogger);
@@ -46,9 +46,9 @@ app.engine(
   exphbs.engine({
     handlebars:
       require("@handlebars/allow-prototype-access").allowInsecurePrototypeAccess(
-        require("handlebars")
+        require("handlebars"),
       ),
-  })
+  }),
 );
 app.set("view engine", "handlebars");
 app.set("views", "./src/views");
@@ -61,20 +61,20 @@ app.use("/api/sessions", require("./routes/auth.routes"));
 app.use("/api/users", require("./routes/users.routes.js"));
 app.use("/", require("./routes/views.routes"));
 
-// other middlewares
-app.use(require("./middleware/UpdateSockets")(socketIO));
-app.use(require("./middleware/NotFound"));
-app.use(require("./middleware/ErrorHandler"));
-
 const httpServer = app.listen(PORT, () => {
   logger.info(
     `${new Date().toUTCString()} | Server listening at ${
       HOSTNAME ? HOSTNAME : "localhost"
-    }:${PORT}`
+    }:${PORT}`,
   );
 });
 
 // socket.io logic
-var socketIO = require("./socket-io")(httpServer);
+const socketIO = require("./socket-io")(httpServer);
+
+// other middlewares
+app.use(require("./middleware/UpdateSockets")(socketIO));
+app.use(require("./middleware/NotFound"));
+app.use(require("./middleware/ErrorHandler"));
 
 require("./database");
