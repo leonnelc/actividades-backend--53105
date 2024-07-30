@@ -15,11 +15,14 @@ const appendAlert = (message, type, duration) => {
     "user-select-none",
     "my-1",
     "mx-auto",
-    "fade"
+    "fade",
   );
   alert.appendChild(alertMessage);
   alert.appendChild(button);
   alertContainer.append(alert);
+  if (duration == null) {
+    duration = 2500;
+  }
   setTimeout(() => {
     alert.classList.add("show");
   }, 10);

@@ -46,6 +46,7 @@ async function registerLocal(req, username, password, done) {
       age,
       role: "user",
       password,
+      last_connection: new Date(),
     });
     createJWT(user, done);
   } catch (error) {

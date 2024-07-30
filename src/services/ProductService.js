@@ -30,6 +30,7 @@ async function deleteProduct(id) {
   if (!product) {
     throw new ProductError(`Product id ${id} not found`);
   }
+  return product;
 }
 async function getProductsPaged({ limit, page, query, sort }) {
   page = page ?? 1;

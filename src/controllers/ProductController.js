@@ -1,6 +1,7 @@
 const ProductService = require("../services/ProductService");
 const ProductError = require("../services/errors/api/ProductError");
 const ProductDTO = require("../dtos/ProductDTO");
+const MailService = require("../services/MailService");
 const ErrorHandler = require("../middleware/ErrorHandler");
 const { sendSuccess, buildQueryString } = require("./ControllerUtils");
 const { checkRoles } = require("./AuthController");
@@ -49,7 +50,9 @@ function socketHandler(io, socket) {
       ) {
         throw new ProductError(`Not authorized to delete product id ${pid}`);
       }
-      await ProductService.deleteProduct(pid);
+      const product = await ProductService.deleteProduct(pid);
+      if (socket.data.user.role != "admin")
+        sendDeleteMail(socket.data.user, product);
       io.to("rtproducts").emit("rtproducts:deleteProduct", pid);
     } catch (error) {
       ErrorHandler(error, socket.data, socket, "socket");
@@ -197,6 +200,68 @@ async function update(req, res, next) {
     next(new ProductError(error.message));
   }
 }
+function sendDeleteMail(user, product) {
+  MailService.sendMail(
+    user.email,
+    "Product Deletion Notification",
+    `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Deletion Notification</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            margin: 0;
+            color: #007BFF;
+        }
+        .message {
+            margin-bottom: 20px;
+        }
+        .footer {
+            text-align: center;
+            font-size: 0.9em;
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Notification</h1>
+        </div>
+        <div class="message">
+            <p>Hi, ${user.first_name}</p>
+            <p>Your product "<strong>${product.title}</strong>" has been deleted from our database.</p>
+            <p>If you didn't do this, please contact an administrator.</p>
+        </div>
+        <div class="footer">
+            <p>Thank you</p>
+        </div>
+    </div>
+</body>
+</html>`,
+  );
+}
 async function deleteProduct(req, res, next) {
   try {
     const { pid } = req.params;
@@ -204,7 +269,8 @@ async function deleteProduct(req, res, next) {
     if (!ownsProduct(req.user, await ProductService.getProductById(pid))) {
       throw new Error(`Not authorized to delete product id ${pid}`);
     }
-    await ProductService.deleteProduct(pid);
+    const product = await ProductService.deleteProduct(pid);
+    if (req.user.role != "admin") sendDeleteMail(req.user, product);
     res.locals.send = {
       status: "success",
       message: "Product deleted succesfully",

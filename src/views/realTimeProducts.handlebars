@@ -1,12 +1,14 @@
 <div class="container-fluid px-4 py-5">
   <div class="row justify-content-center">
     <div class="col-12 col-xl-10">
-      <h1 class="mb-4">Products</h1>
-      <button type="button" class="btn btn-primary mb-4" data-bs-toggle="modal" data-bs-target="#addProductModal">
-        Add Product
-      </button>
-      <p id="errmsg" class="text-danger"></p>
-      <div id="product-container" class="row justify-content-center"></div>
+      <h1 class="mb-4 text-center">Products</h1>
+      <div class="d-flex justify-content-center">
+        <button type="button" class="btn btn-primary mb-4" data-bs-toggle="modal" data-bs-target="#addProductModal">
+          Add Product
+        </button>
+      </div>
+      <div id="product-container" class="row justify-content-center">
+      </div>
     </div>
   </div>
 </div>
@@ -98,4 +100,5 @@
   </div>
 </div>
 <script src="https://cdn.socket.io/4.7.3/socket.io.min.js"></script>
+{{>alerts}}
 <script src="js/realtimeproducts.js"></script>
