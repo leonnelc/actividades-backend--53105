@@ -4,6 +4,7 @@ const { checkRoles } = require("../controllers/AuthController");
 const requireAuth = checkRoles(["any"], { isView: true });
 const adminOrPremium = checkRoles(["admin", "premium"], { isView: true });
 const notloggedin = checkRoles(["notloggedin"], { isView: true });
+const admin = checkRoles(["admin"], { isView: true });
 
 Router.get("/", ViewsController.products);
 Router.get("/products", ViewsController.products);
@@ -21,5 +22,6 @@ Router.get("/profile", requireAuth, ViewsController.profile);
 Router.get("/logout", ViewsController.logout);
 Router.get("/chat", requireAuth, ViewsController.chat);
 Router.get("/resetpassword", notloggedin, ViewsController.resetPassword);
+Router.get("/userDashboard", admin, ViewsController.userDashboard);
 
 module.exports = Router;

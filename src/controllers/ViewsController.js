@@ -203,6 +203,10 @@ async function resetPassword(req, res, next) {
     res.render("resetpassword", { invalidtoken: true });
   }
 }
+
+async function userDashboard(req, res, next) {
+  res.render("userDashboard");
+}
 module.exports = {
   realTimeProducts,
   login,
@@ -213,4 +217,5 @@ module.exports = {
   profile,
   logout,
   resetPassword,
+  userDashboard,
 };

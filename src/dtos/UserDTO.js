@@ -7,6 +7,7 @@ class UserDTO {
     this.email = user.email;
     this.role = user.role;
     this.age = user.age;
+    this.last_connection = user.last_connection ?? null;
     if (user.cart)
       this.cart =
         typeof user.cart == "string" ? user.cart : user.cart.toString();

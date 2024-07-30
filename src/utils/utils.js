@@ -7,4 +7,9 @@ function isValidPassword(password, hashedPassword) {
   return bcrypt.compareSync(password, hashedPassword);
 }
 
-module.exports = { hash, isValidPassword };
+const regex = /[/\-\\^$*+?.()|[\]{}]/g;
+function escapeRegex(string) {
+  return string.replace(regex, "\\$&");
+}
+
+module.exports = { hash, isValidPassword, escapeRegex };

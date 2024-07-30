@@ -3,6 +3,7 @@ const UserController = require("../controllers/UserController");
 const { checkRoles } = require("../controllers/AuthController");
 const loggedin = checkRoles(["any"]);
 const notloggedin = checkRoles(["notloggedin"]);
+const admin = checkRoles(["admin"]);
 const multer = require("../middleware/Multer");
 
 Router.get("/premium/:uid", loggedin, UserController.togglePremium);
@@ -29,5 +30,9 @@ Router.post(
   multer.single("avatar"),
   UserController.uploadAvatar,
 );
+Router.delete("/:uid", admin, UserController.deleteUser);
+Router.delete("/", admin, UserController.deleteInactiveUsers);
+Router.get("/", admin, UserController.getUsersPaginated);
+Router.put("/:uid/role/:role", admin, UserController.updateRole);
 
 module.exports = Router;
