@@ -34,17 +34,23 @@ function checkRoles(roles, opts = { isView: false, isSocket: false }) {
 }
 
 const setJWTCookie = (req, res) => {
-  res.cookie("jwt", req.user.token, {
+  res.cookie("refreshToken", req.user.refreshToken, {
     priority: "high",
     httpOnly: true,
     sameSite: "strict", // Protect against CSRF
     maxAge: 86400000, // 1 day
   });
-  req.user = req.user.user;
+  res.cookie("accessToken", req.user.accessToken, {
+    priority: "high",
+    httpOnly: true,
+    sameSite: "strict", // Protect against CSRF
+    maxAge: 15 * 60 * 1000, // 15 minutes
+  });
 };
 
 async function logout(req, res) {
-  res.clearCookie("jwt");
+  res.clearCookie("accessToken");
+  res.clearCookie("refreshToken");
   res.redirect("/login");
 }
 async function current(req, res, next) {

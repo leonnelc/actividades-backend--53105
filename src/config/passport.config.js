@@ -30,8 +30,8 @@ const initializePassport = () => {
       {
         jwtFromRequest: ExtractJwt.fromExtractors([
           ExtractJwt.fromAuthHeaderAsBearerToken(),
-          ExtractJwt.fromUrlQueryParameter("jwt"),
-          ExtractJwt.fromCookie("jwt"),
+          ExtractJwt.fromUrlQueryParameter("accessToken"),
+          ExtractJwt.fromCookie("accessToken"),
         ]),
         secretOrKey: JWT_SECRET,
         passReqToCallback: true,

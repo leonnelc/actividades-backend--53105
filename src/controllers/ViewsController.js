@@ -143,6 +143,7 @@ async function profile(req, res, next) {
     }
     fullUser._doc.documents = documents;
     const user = { ...fullUser._doc, ...new UserDTO(fullUser) };
+    await req.refreshAccessToken(fullUser);
     res.render("profile", {
       user,
     });
@@ -151,8 +152,9 @@ async function profile(req, res, next) {
   }
 }
 async function logout(req, res) {
-  res.clearCookie("jwt");
-  res.redirect("login");
+  res.clearCookie("accessToken");
+  res.clearCookie("refreshToken");
+  res.redirect("/login");
 }
 async function resetPassword(req, res) {
   const { token } = req.query;

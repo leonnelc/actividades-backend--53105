@@ -17,8 +17,8 @@ module.exports = (httpServer) => {
     const isHandshake = req._query.sid === undefined;
     try {
       if (isHandshake) {
-        if (!req.cookies.jwt) return next();
-        const decoded = jwt.verify(req.cookies.jwt, JWT_SECRET);
+        if (!req.cookies.accessToken) return next();
+        const decoded = jwt.verify(req.cookies.accessToken, JWT_SECRET);
         const user = decoded.user;
         req.user = user;
       }
