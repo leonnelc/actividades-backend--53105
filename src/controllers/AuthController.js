@@ -1,5 +1,6 @@
 const { sendSuccess } = require("./ControllerUtils");
 const AuthError = require("../services/errors/AuthError");
+const RefreshTokenService = require("../services/RefreshTokenService");
 const passport = require("passport");
 
 function checkRoles(roles, opts = { isView: false, isSocket: false }) {
@@ -51,7 +52,7 @@ const setJWTCookie = (req, res) => {
 async function logout(req, res) {
   res.clearCookie("accessToken");
   res.clearCookie("refreshToken");
-  res.redirect("/login");
+  sendSuccess(res, { message: "Logged out succesfully" });
 }
 async function current(req, res, next) {
   if (!req.user) {
@@ -147,6 +148,22 @@ async function googleCallback(req, res, next) {
   )(req, res, next);
 }
 
+async function deleteTokens(req, res, next) {
+  try {
+    const { uid } = req.params;
+    if (uid != req.user.id && req.user.role != "admin") {
+      throw new AuthError(`Not authorized`);
+    }
+    const result = await RefreshTokenService.deleteAllTokens(uid);
+    sendSuccess(res, {
+      message: `Refresh tokens deleted`,
+      count: result.deletedCount,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
 module.exports = {
   logout,
   current,
@@ -157,4 +174,5 @@ module.exports = {
   googleLogin,
   googleCallback,
   checkRoles,
+  deleteTokens,
 };

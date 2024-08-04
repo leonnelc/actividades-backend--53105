@@ -1,7 +1,7 @@
 const UserService = require("../services/UserService");
 const AuthError = require("../services/errors/AuthError");
 const validator = require("email-validator");
-const { createJWT } = require("../utils/utils");
+const { createJWT } = require("../services/RefreshTokenService");
 
 async function registerLocal(req, username, password, done) {
   const email = req.body.email?.trim().toLowerCase();
@@ -40,7 +40,7 @@ async function registerLocal(req, username, password, done) {
       password,
       last_connection: new Date(),
     });
-    const jwt = createJWT(user);
+    const jwt = await createJWT(user);
     done(null, jwt);
   } catch (error) {
     return done(error);
@@ -59,7 +59,7 @@ async function loginLocal(req, email, password, done) {
     }
     user.last_connection = new Date();
     await user.save();
-    const jwt = createJWT(user);
+    const jwt = await createJWT(user);
     done(null, jwt);
   } catch (error) {
     return done(error);
@@ -85,7 +85,7 @@ async function loginGithub(req, accessToken, refreshToken, profile, done) {
     });
     user.last_connection = new Date();
     await user.save();
-    const jwt = createJWT(user);
+    const jwt = await createJWT(user);
     done(null, jwt);
   } catch (error) {
     return done(error);
@@ -107,7 +107,7 @@ async function loginGoogle(req, accessToken, refreshToken, profile, done) {
     });
     user.last_connection = new Date();
     await user.save();
-    const jwt = createJWT(user);
+    const jwt = await createJWT(user);
     done(null, jwt);
   } catch (error) {
     return done(error);

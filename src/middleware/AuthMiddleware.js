@@ -2,7 +2,10 @@ const passport = require("passport");
 const { JWT_SECRET } = require("../config/config");
 const JWT = require("jsonwebtoken");
 const UserService = require("../services/UserService");
-const { createJWT } = require("../utils/utils");
+const {
+  createJWT,
+  createAccessToken,
+} = require("../services/RefreshTokenService");
 
 function AuthMiddleware(req, res, next) {
   passport.authenticate(
@@ -12,14 +15,18 @@ function AuthMiddleware(req, res, next) {
       req.refreshAccessToken = async (user) => {
         try {
           res.clearCookie("accessToken");
-          if (!req.cookies?.refreshToken) return;
-          const userId = JWT.verify(req.cookies.refreshToken, JWT_SECRET).user;
+          const refreshToken = req.cookies?.refreshToken;
+          if (!refreshToken) return;
+          const { userId } = JWT.verify(refreshToken, JWT_SECRET);
+
           if (!user) {
             user = await UserService.findById(userId);
           }
           user.last_connection = new Date();
           await user.save();
-          const jwt = createJWT(user);
+
+          const jwt = await createAccessToken(user, refreshToken);
+
           res.cookie("accessToken", jwt.accessToken, {
             priority: "high",
             httpOnly: true,
