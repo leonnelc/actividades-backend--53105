@@ -11,7 +11,7 @@ function ErrorHandler(err, req, res, _next) {
     }${err.message} | ${trace}`,
   });
   let isView = false;
-  function send(status, message, optionalData, view) {
+  function send(status, message, optionalData, view, options) {
     if (_next == "socket") {
       res.emit("error", message);
       return;
@@ -24,6 +24,7 @@ function ErrorHandler(err, req, res, _next) {
         .status(status)
         .render("message", { title: "Error", error: true, message });
     }
+    if (options?.redirect) return res.status(status).redirect(message);
     return res
       .status(status)
       .json({ status: "error", message, ...optionalData });
@@ -64,6 +65,10 @@ function ErrorHandler(err, req, res, _next) {
       switch (err.name) {
         case "AlreadyLoggedInError":
           send(409, err.message, { user: req.user }, "alreadyloggedin");
+          break;
+        case "NotAuthenticated":
+          isView = false;
+          send(401, "/login", {}, false, { redirect: true });
           break;
         default:
           send(401, err.message);
