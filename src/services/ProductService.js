@@ -1,5 +1,6 @@
 const Product = require(`../models/Product`);
 const ProductError = require("./errors/api/ProductError");
+const { escapeRegex } = require("../utils/utils");
 
 async function addProduct({
   title,
@@ -54,6 +55,33 @@ async function getProductsPaged({ limit, page, query, sort }) {
   };
   return await Product.paginate(query, pagOptions);
 }
+
+async function getProductsPaginated(
+  queryParams = { page: 1, limit: 10, sort: "_id", order: "asc", q: "" },
+) {
+  let {
+    page = 1,
+    limit = 10,
+    sort = "_id",
+    order = "asc",
+    q = "",
+  } = queryParams;
+  q = q.trim().toLowerCase();
+  const options = {
+    page: parseInt(page),
+    limit: parseInt(limit),
+    sort: { [sort]: order == "asc" ? 1 : -1 },
+  };
+
+  const mongoQuery = !q
+    ? {}
+    : { title: { $regex: escapeRegex(q), $options: "i" } };
+
+  const result = await Product.paginate(mongoQuery, options);
+
+  return result;
+}
+
 async function getCategories() {
   return await Product.distinct(`category`);
 }
@@ -103,6 +131,7 @@ module.exports = {
   addProduct,
   deleteProduct,
   getProducts,
+  getProductsPaginated,
   getProductsByOwner,
   getProductsPaged,
   getProductById,

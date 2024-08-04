@@ -4,7 +4,7 @@ const ProductController = require("../controllers/ProductController");
 const { checkRoles } = require("../controllers/AuthController");
 const adminOrPremium = checkRoles(["admin", "premium"]);
 
-Router.get("/", ProductController.getProducts);
+Router.get("/", ProductController.getProductsPaginated);
 Router.get("/:pid", ProductController.getById);
 Router.get("/code/:code", ProductController.getByCode);
 Router.post("/", adminOrPremium, ProductController.add);

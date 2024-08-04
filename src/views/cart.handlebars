@@ -11,7 +11,7 @@
           <p class="card-text" id="price">Price: <span id="price">{{this.product.price}}</span></p>
           <p class="card-text" id="quantity">Quantity: <input id="quantity" quantity="{{this.quantity}}" name="quantity"
               type="number" class="border-0 bg-transparent" style="width: 3.2rem;" value={{this.quantity}}><button
-              id="apply" class="btn btn-primary transition disabled invisibility"
+              id="apply" class="btn btn-primary ms-2 transition disabled invisibility"
               onclick="javascript:updateQuantity('{{this.product._id}}')">Apply</button></p>
           <button class="btn btn-secondary" onclick="javascript:removeFromCart('{{this.product._id}}')">Remove
             from cart</button>

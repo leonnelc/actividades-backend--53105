@@ -17,6 +17,7 @@ Router.get("/carts/:cid", requireAuth, ViewsController.carts);
 Router.get("/carts", requireAuth, ViewsController.carts);
 Router.get("/cart", requireAuth, ViewsController.carts);
 Router.get("/login", notloggedin, ViewsController.login);
+Router.get("/login/:provider", notloggedin, ViewsController.loginCallback);
 Router.get("/register", notloggedin, ViewsController.register);
 Router.get("/profile", requireAuth, ViewsController.profile);
 Router.get("/logout", ViewsController.logout);

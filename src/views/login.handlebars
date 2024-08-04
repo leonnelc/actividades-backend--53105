@@ -3,19 +3,19 @@
   <form id="loginForm" class="text-center" action="/api/sessions/login" method="post">
     <h1 class="display-1 mb-4">Sign in</h1>
     <!-- Email input -->
-    <div class="form-floating mb-3">
+    <div class="form-floating mb-3" id="emailDiv">
       <input type="email" name="email" id="email" class="form-control" placeholder="name@example.com" required />
       <label for="email">Email</label>
     </div>
     <!-- Password input -->
-    <div class="form-floating mb-3">
+    <div class="form-floating mb-3" id="passwordDiv">
       <input type="password" name="password" id="password" class="form-control" placeholder="password" required />
       <label for="password">Password</label>
     </div>
-    <div id="errorMessage" class="text-wrap text-danger" style="display: none;"></div>
+    <div id="errorMessage" class="text-wrap text-danger mb-1 d-none"></div>
     <!-- Submit button -->
     <button type="submit" class="btn btn-primary btn-block mb-4">
-      <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+      <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="spinner"></span>
       Sign in
     </button>
     <!-- Register button -->
@@ -33,60 +33,85 @@
   </form>
 </div>
 
+
 <!-- JavaScript -->
 <script>
+
   document.addEventListener('DOMContentLoaded', function () {
     const form = document.getElementById('loginForm');
     const submitButton = form.querySelector('button[type="submit"]');
     const spinner = submitButton.querySelector('.spinner-border');
     const errorMessageDiv = document.getElementById('errorMessage');
+    const emailDiv = document.getElementById("emailDiv");
+    const passwordDiv = document.getElementById("passwordDiv");
 
-    form.addEventListener('submit', async function (e) {
-      e.preventDefault();
-      await submitForm(form);
+    {{#if provider}}
+    const queries = window.location.search;
+    spinner.classList.remove("d-none");
+    submitButton.disabled = true;
+    emailDiv.classList.add("d-none");
+    passwordDiv.classList.add("d-none");
+    fetch(`/api/sessions/{{provider}}/callback${queries}`, {method: "GET"}).then((response) => {
+      if (response.ok) {
+        window.location.href = "/profile"
+      }
+      else {
+        errorMessageDiv.textContent = "An error has occurred with the provider '{{provider}}'";
+        errorMessageDiv.classList.remove("d-none");
+        submitButton.disabled = false;
+        spinner.classList.add("d-none");
+        emailDiv.classList.remove("d-none");
+        passwordDiv.classList.remove("d-none");
+      }
     });
+    {{/if}}
 
-    async function submitForm(form) {
-      const formData = Object.fromEntries(new FormData(form));
-      const url = form.action;
-      const method = form.method;
-
-      // Show spinner
-      spinner.classList.remove('d-none');
-      submitButton.disabled = true;
-
-      const response = await fetch(url, {
-        method: method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData)
-      });
-      response.json().then(data => {
-        if (response.ok) {
-          window.location.href = "/profile";
-        } else {
-          throw new Error(data.message || 'An error occurred');
-        }
-      })
-        .catch(error => {
-          errorMessageDiv.textContent = error.message;
-          errorMessageDiv.style.display = 'block';
-        })
-        .finally(() => {
-          // Hide spinner
-          spinner.classList.add('d-none');
-          submitButton.disabled = false;
+        form.addEventListener('submit', async function (e) {
+          e.preventDefault();
+          await submitForm(form);
         });
-    }
 
-    // Handle OAuth links
-    const oauthLinks = document.querySelectorAll('.js-oauth-link');
-    oauthLinks.forEach(link => {
-      link.addEventListener('click', function (e) {
-        e.preventDefault();
-        window.location.href = this.href;
+        async function submitForm(form) {
+          const formData = Object.fromEntries(new FormData(form));
+          const url = form.action;
+          const method = form.method;
+
+          // Show spinner
+          spinner.classList.remove('d-none');
+          submitButton.disabled = true;
+
+          const response = await fetch(url, {
+            method: method,
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
+          });
+          response.json().then(data => {
+            if (response.ok) {
+              window.location.href = "/profile";
+            } else {
+              throw new Error(data.message || 'An error occurred');
+            }
+          })
+            .catch(error => {
+              errorMessageDiv.textContent = error.message;
+              errorMessageDiv.classList.remove("d-none");
+            })
+            .finally(() => {
+              // Hide spinner
+              spinner.classList.add('d-none');
+              submitButton.disabled = false;
+            });
+        }
+
+        // Handle OAuth links
+        const oauthLinks = document.querySelectorAll('.js-oauth-link');
+        oauthLinks.forEach(link => {
+          link.addEventListener('click', function (e) {
+            e.preventDefault();
+            window.location.href = this.href;
+          });
+        });
       });
-    });
-  });
 </script>

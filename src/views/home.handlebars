@@ -1,42 +1,85 @@
-<h1 class="display-1 text-center">Products</h1>
-{{#if username}}
-<div class="row mx-auto">
-  <div class="col-12 col-md-11 text-end mx-auto">
-    <p class="lead text-info">Welcome, {{username}}!</p>
+<header class="container-fluid mb-4 mt-1">
+  {{#if user}}
+  <div class="row justify-content-end">
+    <div class="col-auto">
+      <div class="d-flex align-items-center">
+        <span class="me-3">
+          <i class="bi bi-person-circle me-2"></i>
+          <strong>{{user.first_name}}</strong>
+          <span class="badge bg-secondary ms-2">{{user.role}}</span>
+        </span>
+        <a href="/logout" class="btn btn-outline-danger btn-sm">
+          <i class="bi bi-box-arrow-right me-1"></i>Log out
+        </a>
+      </div>
+    </div>
   </div>
-  <div class="col-12 col-md-11 text-end mx-auto">
-    <p class="lead text-info">Role: {{role}}
-      <a href="logout" class="btn btn-danger">Log out</a>
-    </p>
+  {{/if}}
+  <div class="col">
+    <h1 class="display-4 text-center">Products</h1>
   </div>
-</div>
-<script>const cartId = "{{cart}}"</script>
+</header>
+{{#if user}}
+<script>
+  const cartId = "{{user.cart}}";
+</script>
 {{/if}}
-{{#unless invalidPage}}
+{{#if result.isValidPage}}
 <!-- Search filters -->
-<div class="d-inline-flex flex-column ms-5 mb-1">
-  <div class="form-floating mb-1 ms-4">
-    <select class="form-select" id="sort-selector">
-      <option value>No</option>
-      <option value="asc">Ascending</option>
-      <option value="desc">Descending</option>
-    </select>
-    <label for="sort-selector">Sort by price:</label>
+<div class="container mb-3 d-flex justify-content-between flex-row flex-wrap gap-2">
+  <div>
+    <div class="col-auto">
+      <div class="dropdown">
+        <button class="btn btn-primary dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown"
+          aria-expanded="false">
+          Filters
+        </button>
+        <div class="dropdown-menu p-3" aria-labelledby="filterDropdown" style="width: 250px;">
+          <h6 class="dropdown-header">Search Filters</h6>
+          <div class="mb-3">
+            <label for="sort-selector" class="form-label">Sort by price:</label>
+            <select class="form-select form-select-sm" id="sort-selector" aria-label="Sort by price">
+              <option value="" selected>No sorting</option>
+              <option value="asc">Ascending</option>
+              <option value="desc">Descending</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="category-selector" class="form-label">Category:</label>
+            <select class="form-select form-select-sm" id="category-selector" aria-label="Select category">
+              <option value="" selected>All categories</option>
+              {{#each categories}}
+              <option value="{{this}}">{{this}}</option>
+              {{/each}}
+            </select>
+          </div>
+          <div class="d-grid gap-2">
+            <button type="button" class="btn btn-outline-secondary btn-sm" id="reset-filters">Reset</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
-  <div class="form-floating mb-1 ms-4">
-    <select class="form-select" id="category-selector">
-      <option value>All categories</option>
-      {{#each categories}}
-      <option value="{{this}}">{{this}}</option>
-      {{/each}}
-    </select>
-    <label for="category-selector">Category:</label>
+  <div>
+    <form class="d-flex" role="search" id="searchForm">
+      <div class="input-group">
+        <input class="form-control" type="search" id="searchInput" name="q" placeholder="Search product name"
+          aria-label="Search">
+        <button class="btn btn-outline-success" type="submit">
+          <i class="bi bi-search" id="searchIcon"></i>
+          <div class="spinner-border spinner-border-sm d-none" id="searchSpinner" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </button>
+
+      </div>
+    </form>
   </div>
 </div>
-{{#if products}}
+{{#if result.items}}
 <!-- Product cards -->
 <div class="row d-flex justify-content-center m-0 gap-2">
-  {{#each products}}
+  {{#each result.items}}
   <div class="card col-12 col-sm-5 col-md-3 col-lg-2 m-0 my-3 m-sm-1 m-md-2 bg-dark-subtle animation-lift border-0">
     {{#each this.thumbnails}}
     <img src="{{this}}" class="card-img-top img-fluid object-fit-cover" alt="Product image couldn't load" />
@@ -46,7 +89,7 @@
       <p class="card-text overflow-auto" style="height: 4.5rem;">{{this.description}}</p>
     </div>
     <button class="btn btn-success mb-2 {{#unless this.status}}disabled{{/unless}}"
-      onclick="javascript:addToCart('{{this._id}}')">{{#if this.status}}Add to
+      onclick="javascript:addToCart('{{this.id}}')">{{#if this.status}}Add to
       cart{{/if}}{{#unless this.status}}Unavailable{{/unless}}</button>
     <ul class="list-group list-group-flush">
       <li class="bg-transparent list-group-item">$ {{this.price}}</li>
@@ -63,18 +106,18 @@
 <!-- Pagination controls -->
 <nav aria-label="Page navigation" class="nav justify-content-center mt-3">
   <ul class="pagination">
-    {{#if hasPrevPage}}
+    {{#if result.hasPrevPage}}
     <li class="page-item">
-      <a class="page-link" href="{{prevLink}}" aria-label="Previous">
-        <span aria-hidden="true">{{prevPage}}</span>
+      <a class="page-link" href="{{result.prevLink}}" aria-label="Previous">
+        <span aria-hidden="true">{{result.prevPage}}</span>
       </a>
     </li>
     {{/if}}
-    <li class="page-item"><a class="page-link active" href="#">{{page}}</a></li>
-    {{#if hasNextPage}}
+    <li class="page-item"><a class="page-link active" href="#">{{result.page}}</a></li>
+    {{#if result.hasNextPage}}
     <li class="page-item">
-      <a class="page-link" href="{{nextLink}}" aria-label="Next">
-        <span aria-hidden="true">{{nextPage}}</span>
+      <a class="page-link" href="{{result.nextLink}}" aria-label="Next">
+        <span aria-hidden="true">{{result.nextPage}}</span>
       </a>
     </li>
     {{/if}}
@@ -86,6 +129,6 @@
   <a class="col-2 m-auto btn btn-primary" onclick="javascript:goBack()">Go back
     to first page</a>
 </div>
-{{/unless}}
+{{/if}}
 {{>alerts}}
 <script src="js/home.js"></script>

@@ -1,34 +1,50 @@
-<nav class="navbar navbar-expand">
-  <div class="container-fluid">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark-subtle">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      Ecommerce
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+      aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-        <li class="nav-item dropdown">
-          <a
-            class="nav-link dropdown-toggle"
-            href="#"
-            role="button"
-            data-bs-toggle="dropdown"
-            aria-expanded="false"
-          >
-            Routes
-          </a>
-          <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="/login">/login</a></li>
-            <li><a class="dropdown-item" href="/products">/products</a></li>
-            <li><a
-                class="dropdown-item"
-                href="/realtimeproducts"
-              >/RealTimeProducts</a></li>
-            <li><a class="dropdown-item" href="/carts">/carts</a></li>
-            <li><a class="dropdown-item" href="/profile">/profile</a></li>
-            <li><a class="dropdown-item" href="/chat">/chat</a></li>
-          </ul>
+        <li class="nav-item"><a class="nav-link" href="/products"><i class="bi bi-cart me-2"></i>Products</a></li>
+        {{#if (eq user.role "user")}}
+        <!-- User only routes -->
+        <li class="nav-item"><a class="nav-link" href="/profile"><i class="bi bi-person me-2"></i>Profile</a></li>
+        {{/if}}
+        {{#if (eq user.role "premium")}}
+        <!-- Premium only routes -->
+        <li class="nav-item"><a class="nav-link" href="/realtimeproducts"><i class="bi bi-clock-history me-2"></i>Real
+            Time
+            Products</a></li>
         </li>
-      </ul>
-    <a class="navbar-brand mx-auto" href="/">Ecommerce</a>
-      <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-        <li class="nav-item">
-          <a class="nav-link" href="/">Home</a>
+        <li class="nav-item"><a class="nav-link" href="/profile"><i class="bi bi-person me-2"></i>Profile</a></li>
+        {{/if}}
+        {{#if (eq user.role "admin")}}
+        <!-- Admin only routes -->
+        <li class="nav-item"><a class="nav-link" href="/realtimeproducts"><i class="bi bi-clock-history me-2"></i>Real
+            Time
+            Products</a></li>
         </li>
+        <li class="nav-item"><a class="nav-link" href="/userDashboard"><i class="bi bi-person-lines-fill me-2"></i>User
+            Dashboard</a>
+          {{/if}}
+          {{#if user}}
+          <!-- Logged in routes -->
+        <li class="nav-item"><a class="nav-link" href="/cart"><i class="bi bi-basket me-2"></i>Cart</a></li>
+        <li class="nav-item"><a class="nav-link" href="/chat"><i class="bi bi-chat-dots me-2"></i>Chat</a></li>
+        <li class="nav-item"><a class="nav-link" href="/logout"><i class="bi bi-box-arrow-right me-2"></i>Logout</a>
+        </li>
+        {{else}}
+        <!-- Logged out routes -->
+        <li class="nav-item"><a class="nav-link" href="/login"><i class="bi bi-box-arrow-in-right me-2"></i>Login</a>
+        </li>
+        <li class="nav-item"><a class="nav-link" href="/register"><i class="bi bi-person-plus me-2"></i>Register</a>
+        </li>
+        {{/if}}
       </ul>
+    </div>
   </div>
 </nav>

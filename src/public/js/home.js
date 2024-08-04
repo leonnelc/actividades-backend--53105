@@ -1,7 +1,17 @@
+const resetButton = document.getElementById("reset-filters");
+const sortSelector = document.getElementById("sort-selector");
+const categorySelector = document.getElementById("category-selector");
+const searchInput = document.getElementById("searchInput");
+const searchForm = document.getElementById("searchForm");
+const searchIcon = document.getElementById("searchIcon");
+const searchSpinner = document.getElementById("searchSpinner");
+const search = new URLSearchParams(window.location.search);
+
 function queryRedirect(queries, values) {
-  // Sets queries and redirects, keeping the other queries. Deletes the query if value is empty.
+  // Set query and redirect, keeping the existing queries. Delete query if value is an empty string.
+  // example: queries = ["q"], values = ["this is the query value of q"]
   let params = new URLSearchParams(window.location.search);
-  for (i in queries) {
+  for (let i in queries) {
     params.set(queries[i], values[i]);
     if (values[i] == "") {
       params.delete(queries[i]);
@@ -9,9 +19,19 @@ function queryRedirect(queries, values) {
   }
   window.location.search = params.toString();
 }
-const sortSelector = document.getElementById("sort-selector");
-const categorySelector = document.getElementById("category-selector");
-let search = new URLSearchParams(window.location.search);
+
+searchInput.value = search.get("q") ?? "";
+searchForm.onsubmit = (event) => {
+  event.preventDefault();
+  queryRedirect(["q"], [searchInput.value]);
+  searchIcon.classList.add("d-none");
+  searchSpinner.classList.remove("d-none");
+};
+
+resetButton.onclick = () => {
+  window.location.search = "";
+};
+
 sortSelector.value = search.get("sort") ?? "";
 categorySelector.value = JSON.parse(search.get("query"))?.category ?? "";
 sortSelector.onchange = (event) => {
@@ -20,7 +40,10 @@ sortSelector.onchange = (event) => {
 categorySelector.onchange = (event) => {
   queryRedirect(
     ["query", "page"],
-    [event.target.value != "" ? `{"category":"${event.target.value}"}` : "", ""]
+    [
+      event.target.value != "" ? `{"category":"${event.target.value}"}` : "",
+      "",
+    ],
   );
 };
 function goBack() {

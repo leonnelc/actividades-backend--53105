@@ -41,15 +41,7 @@ if (DISABLE_CACHE) {
 }
 
 // express-handlebars & config
-app.engine(
-  "handlebars",
-  exphbs.engine({
-    handlebars:
-      require("@handlebars/allow-prototype-access").allowInsecurePrototypeAccess(
-        require("handlebars"),
-      ),
-  }),
-);
+app.engine("handlebars", require("./middleware/Handlebars.js"));
 app.set("view engine", "handlebars");
 app.set("views", "./src/views");
 

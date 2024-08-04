@@ -1,6 +1,7 @@
 const ProductService = require("../services/ProductService");
 const ProductError = require("../services/errors/api/ProductError");
 const ProductDTO = require("../dtos/ProductDTO");
+const PaginatedProductDTO = require("../dtos/PaginatedProductDTO");
 const MailService = require("../services/MailService");
 const ErrorHandler = require("../middleware/ErrorHandler");
 const { sendSuccess, buildQueryString } = require("./ControllerUtils");
@@ -99,73 +100,26 @@ function socketHandler(io, socket) {
   });
 }
 
-async function getProducts(req, res, next) {
-  let limit, page, sort, query;
-  if (req.query.limit != undefined) {
-    limit = Number(req.query.limit);
-  }
-  if (req.query.page != undefined) {
-    page = Number(req.query.page);
-  }
-  if (["asc", "desc"].includes(req.query.sort)) {
-    sort = req.query.sort;
-  }
-  if (req.query.query != null) {
-    try {
-      query = JSON.parse(req.query.query);
-    } catch (error) {
-      next(new ProductError(`Error parsing query: ${error.message}`));
-    }
-  }
+async function getProductsPaginated(req, res, next) {
   try {
-    const result = await ProductService.getProductsPaged({
-      limit,
-      page,
-      sort,
-      query,
-    });
-    ({
-      totalPages,
-      prevPage,
-      nextPage,
-      hasPrevPage,
-      hasNextPage,
-      prevLink,
-      nextLink,
-      page,
-    } = result);
-    if (page > totalPages) {
-      throw new Error(`Invalid page specified`);
-    }
-    prevLink = prevLink ?? null;
-    nextLink = nextLink ?? null;
     const url = req.baseUrl + req.path;
-    if (hasPrevPage) {
-      prevLink = buildQueryString(req.query, `${url}`, {
-        page: result.page - 1,
-      });
-    }
-    if (hasNextPage) {
-      nextLink = buildQueryString(req.query, `${url}`, {
-        page: result.page + 1,
-      });
-    }
-    let payload = ProductsDTO(result.docs);
-    sendSuccess(res, {
-      payload,
-      totalPages,
-      prevPage,
-      nextPage,
-      page,
-      hasPrevPage,
-      hasNextPage,
-      prevLink,
-      nextLink,
-    });
+    const result = await ProductService.getProductsPaginated(req.query);
+    result.prevLink = !result.prevPage
+      ? null
+      : buildQueryString(req.query, `${url}`, {
+          page: result.prevPage,
+        });
+    result.nextLink = !result.nextPage
+      ? null
+      : buildQueryString(req.query, `${url}`, {
+          page: result.nextPage,
+        });
+    sendSuccess(res, new PaginatedProductDTO(result));
   } catch (error) {
-    next(new ProductError(error.message));
+    next(error);
   }
 }
+
 async function getById(req, res, next) {
   try {
     const product = await ProductService.getProductById(req.params.pid);
@@ -300,7 +254,7 @@ async function add(req, res, next) {
 
 module.exports = {
   socketHandler,
-  getProducts,
+  getProductsPaginated,
   getById,
   getByCode,
   update,

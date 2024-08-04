@@ -3,6 +3,7 @@ const ProductService = require("../services/ProductService");
 const ChatService = require("../services/ChatService");
 const UserService = require("../services/UserService");
 const UserDTO = require("../dtos/UserDTO");
+const PaginatedProductDTO = require("../dtos/PaginatedProductDTO");
 const { buildQueryString } = require("./ControllerUtils");
 const ViewsError = require("../services/errors/ViewError");
 const jwt = require("jsonwebtoken");
@@ -11,7 +12,10 @@ const { JWT_SECRET } = require("../config/config");
 
 async function realTimeProducts(req, res, next) {
   try {
-    res.render("realTimeProducts", { title: "Real time products" });
+    res.render("realTimeProducts", {
+      title: "Real time products",
+      user: req.user,
+    });
   } catch (error) {
     next(new ViewsError(error.message));
   }
@@ -19,23 +23,29 @@ async function realTimeProducts(req, res, next) {
 async function login(req, res, next) {
   try {
     const user = req.user;
-    const { err } = req.query;
-    res.render("login", {
-      username: user?.first_name,
-      errorMessage: err,
-      loginSuccess: undefined,
-    });
+    res.render("login", { title: "Login", user });
   } catch (error) {
     next(new ViewsError(error.message));
   }
 }
+
+async function loginCallback(req, res, next) {
+  try {
+    const { provider } = req.params;
+    const user = req.user;
+    res.render("login", { title: "Login", user, provider });
+  } catch (error) {
+    next(error);
+  }
+}
+
 async function register(req, res, next) {
   try {
     const user = req.user;
     const { err } = req.query;
     res.render("register", {
-      username: user?.first_name,
-      errorMessage: err,
+      title: "Register",
+      user,
       registerSuccess: null,
     });
   } catch (error) {
@@ -44,79 +54,26 @@ async function register(req, res, next) {
 }
 async function products(req, res, next) {
   try {
-    let limit, page, sort, query;
-    req.query.limit != undefined
-      ? (limit = Number(req.query.limit))
-      : (limit = null);
-    req.query.page != undefined
-      ? (page = Number(req.query.page))
-      : (page = null);
-    if (["asc", "desc"].includes(req.query.sort)) {
-      sort = req.query.sort;
-    }
-    if (req.query.query != null) {
-      try {
-        query = JSON.parse(req.query.query);
-      } catch (error) {
-        next(
-          new ViewsError(`Error parsing query, make sure it's in JSON format`),
-        );
-      }
-    }
-    let result = await ProductService.getProductsPaged({
-      limit,
-      page,
-      sort,
-      query,
-    });
-    if (result.error) {
-      res.status(500).json({ status: "error", message: result.message });
-      return;
-    }
-    result.docs = result.docs.map((doc) => JSON.parse(JSON.stringify(doc)));
-    ({
-      totalPages,
-      prevPage,
-      nextPage,
-      hasPrevPage,
-      hasNextPage,
-      page,
-      prevLink,
-      nextLink,
-      firstLink,
-      lastLink,
-    } = result);
-    if (hasPrevPage) {
-      prevLink = buildQueryString(req.query, "", { page: result.page - 1 });
-      firstLink = buildQueryString(req.query, "", { page: 1 });
-    }
-    if (hasNextPage) {
-      nextLink = buildQueryString(req.query, "", { page: result.page + 1 });
-      lastLink = buildQueryString(req.query, "", { page: result.totalPages });
-    }
+    const result = await ProductService.getProductsPaginated(req.query);
     const categories = await ProductService.getCategories();
+    const url = req.baseUrl + req.path;
+    result.prevLink = !result.prevPage
+      ? null
+      : buildQueryString(req.query, `${url}`, {
+          page: result.prevPage,
+        });
+    result.nextLink = !result.nextPage
+      ? null
+      : buildQueryString(req.query, `${url}`, {
+          page: result.nextPage,
+        });
+    const resultDTO = new PaginatedProductDTO(result);
     const user = req.user;
-    const username = user?.first_name;
-    const role = user?.role;
-    const cart = user?.cart;
-    let invalidPage = page > totalPages || !Number.isInteger(page);
     res.render("home", {
-      invalidPage,
-      title: "Home",
-      username,
-      role,
-      cart,
+      title: "Products",
+      user,
+      result: resultDTO,
       products: result.docs,
-      page,
-      totalPages,
-      prevPage,
-      nextPage,
-      hasPrevPage,
-      hasNextPage,
-      prevLink,
-      nextLink,
-      firstLink,
-      lastLink,
       categories,
     });
   } catch (error) {
@@ -128,6 +85,8 @@ async function carts(req, res, next) {
     let cid = req.params?.cid ?? req.user?.cart;
     if (req.user.cart != cid && req.user.role != "admin") {
       return res.render("message", {
+        title: "Error",
+        user: req.user,
         error: true,
         message: "You are not authorized to see other people's carts!",
       });
@@ -140,7 +99,11 @@ async function carts(req, res, next) {
       for (let cart of await CartService.getCarts()) {
         carts.push({ ...cart._doc });
       }
-      return res.render("cartSelector", { carts });
+      return res.render("cartSelector", {
+        title: "Cart dashboard",
+        user: req.user,
+        carts,
+      });
     }
     const cart = await CartService.getCartById(cid);
     const products = [];
@@ -150,6 +113,7 @@ async function carts(req, res, next) {
     const hasProducts = products.length > 0;
     res.render("cart", {
       tile: "Cart",
+      user: req.user,
       cartFound: true,
       cid,
       hasProducts,
@@ -163,6 +127,7 @@ async function chat(req, res, next) {
   try {
     res.render("chat", {
       title: "Chat",
+      user: req.user,
       messages: await ChatService.getMessages(),
     });
   } catch (error) {
@@ -180,36 +145,37 @@ async function profile(req, res, next) {
     const user = { ...fullUser._doc, ...new UserDTO(fullUser) };
     res.render("profile", {
       user,
-      helpers: {
-        firstChar: (str) => (str ? str.charAt(0).toUpperCase() : ""),
-        eq: (a, b) => a === b,
-      },
     });
   } catch (error) {
     next(new ViewsError(error.message));
   }
 }
-async function logout(req, res, next) {
+async function logout(req, res) {
   res.clearCookie("jwt");
   res.redirect("login");
 }
-async function resetPassword(req, res, next) {
+async function resetPassword(req, res) {
   const { token } = req.query;
   try {
     if (token) jwt.verify(token, JWT_SECRET);
-    res.render("resetpassword");
+    res.render("resetpassword", { title: "Password reset", user: req.user });
   } catch (error) {
     logger.warning(error);
-    res.render("resetpassword", { invalidtoken: true });
+    res.render("resetpassword", {
+      title: "Password reset",
+      user: req.user,
+      invalidtoken: true,
+    });
   }
 }
 
-async function userDashboard(req, res, next) {
-  res.render("userDashboard");
+async function userDashboard(req, res) {
+  res.render("userDashboard", { title: "User dashboard", user: req.user });
 }
 module.exports = {
   realTimeProducts,
   login,
+  loginCallback,
   register,
   products,
   carts,

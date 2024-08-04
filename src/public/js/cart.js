@@ -20,7 +20,7 @@ async function purchaseCart(cid) {
     "text-primary",
     "position-absolute",
     "top-50",
-    "start-50"
+    "start-50",
   );
   loadingCircle.setAttribute("role", "status");
   const loadingCircleSpan = document.createElement("span");
@@ -48,20 +48,20 @@ async function purchaseCart(cid) {
   }
 
   const purchaseModal = new bootstrap.Modal(
-    document.getElementById("purchaseModal")
+    document.getElementById("purchaseModal"),
   );
   const ticketCode = document.getElementById("ticketCode");
   const purchaseDate = document.getElementById("purchaseDate");
   const purchaseAmount = document.getElementById("purchaseAmount");
   const purchaser = document.getElementById("purchaser");
   const notPurchasedItemsList = document.getElementById(
-    "notPurchasedItemsList"
+    "notPurchasedItemsList",
   );
   const purchasedItemsList = document.getElementById("purchasedItemsList");
 
   ticketCode.textContent = purchase.ticket.code;
   purchaseDate.textContent = new Date(
-    purchase.ticket.purchase_datetime
+    purchase.ticket.purchase_datetime,
   ).toLocaleString();
   purchaseAmount.textContent = purchase.ticket.amount;
   purchaser.textContent = purchase.ticket.purchaser;
@@ -107,27 +107,23 @@ function getQuantityElements() {
   return quantityElements;
 }
 function updateVisibleQuantity(productId, newQuantity) {
-  const cardElement = document.querySelector(`div.card[id="${productId}"]`);
-  const quantityParentElement = cardElement.querySelector(
-    "p.card-text#quantity"
+  const quantityTextElement = document.querySelector(
+    `#${CSS.escape(productId)} #quantity`,
   );
-  const quantityElement = quantityParentElement.querySelector("#quantity");
-  //const quantity = parseInt(quantityElement.textContent);
-  quantityElement.textContent = newQuantity;
+  quantityTextElement.textContent = newQuantity;
 }
 function removeItem(productId) {
-  const cardElement = document.querySelector(`div.card[id="${productId}"]`);
+  const cardElement = document.querySelector(`#${CSS.escape(productId)}`);
   cardElement.remove();
 }
 async function updateQuantity(productId) {
   try {
-    const cardElement = document.querySelector(`div.card[id="${productId}"]`);
-    const quantityParentElement = cardElement.querySelector(
-      "p.card-text#quantity"
+    const cardElement = document.querySelector(`#${CSS.escape(productId)}`);
+    const quantityInput = document.querySelector(
+      `#${CSS.escape(productId)} #quantity input`,
     );
-    const quantityElement = quantityParentElement.querySelector("#quantity");
-    const quantity = parseInt(quantityElement.value);
-    if (quantityElement.value == quantityElement.getAttribute("quantity")) {
+    const quantity = parseInt(quantityInput.value);
+    if (quantityInput.value == quantityInput.getAttribute("quantity")) {
       return;
     }
     const response = await fetch(`/api/carts/${cartId}/products/${productId}`, {
@@ -138,7 +134,7 @@ async function updateQuantity(productId) {
       body: JSON.stringify({ quantity }),
     });
     const result = await response.json();
-    if (result.status == "error") {
+    if (!response.ok) {
       return appendAlert(result.message, "danger", 2500);
     }
     cardElement.setAttribute("data-quantity", quantity);
@@ -147,7 +143,7 @@ async function updateQuantity(productId) {
       return appendAlert("Product quantity updated", "info", 2500);
     }
     appendAlert("Product quantity updated", "info", 2500);
-    quantityChange(quantityElement, quantity);
+    quantityChange(quantityInput, quantity);
   } catch (error) {
     console.log(error);
     appendAlert("Couldn't update product", "danger", 2500);
@@ -180,13 +176,13 @@ async function clearCart() {
     appendAlert("Error clearing cart");
   }
 }
-function quantityChange(element, value) {
+function quantityChange(inputElement, value) {
   if (value) {
-    element.setAttribute("quantity", value);
+    inputElement.setAttribute("quantity", value);
   }
-  const quantity = element.getAttribute("quantity");
-  const changed = element.value != quantity;
-  const button = element.parentElement.querySelector("#apply");
+  const quantity = inputElement.getAttribute("quantity");
+  const changed = inputElement.value != quantity;
+  const button = inputElement.parentElement.querySelector("#apply");
   if (changed) {
     return button.classList.remove("invisibility", "disabled");
   }
