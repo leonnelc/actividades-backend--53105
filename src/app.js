@@ -13,7 +13,6 @@ if (DEBUGGING) {
 }
 const app = express();
 app.use(compression());
-const exphbs = require("express-handlebars");
 
 initializePassport();
 
@@ -51,6 +50,7 @@ app.use("/api/products", require("./routes/product.routes"));
 app.use("/api/carts", require("./routes/cart.routes"));
 app.use("/api/sessions", require("./routes/auth.routes"));
 app.use("/api/users", require("./routes/users.routes.js"));
+app.use("/api/tickets", require("./routes/tickets.routes.js"));
 app.use("/", require("./routes/views.routes"));
 
 const httpServer = app.listen(PORT, () => {

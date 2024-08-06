@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const mongoosePaginate = require("mongoose-paginate-v2");
 const Schema = mongoose.Schema;
 const Types = Schema.Types;
 const ticketSchema = new Schema({
@@ -40,5 +41,6 @@ ticketSchema.pre("save", function (next) {
   findUniqueCode();
 });
 
+ticketSchema.plugin(mongoosePaginate);
 const Ticket = mongoose.model("Ticket", ticketSchema);
 module.exports = Ticket;
