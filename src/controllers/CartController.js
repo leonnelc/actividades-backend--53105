@@ -2,10 +2,11 @@ const CartService = require("../services/CartService");
 const TicketService = require("../services/TicketService");
 const UserService = require("../services/UserService");
 const ProductService = require("../services/ProductService");
-const { sendSuccess } = require("./ControllerUtils");
+const { sendSuccess, buildQueryString } = require("./ControllerUtils");
 const CartError = require("../services/errors/api/CartError");
 const APIError = require("../services/errors/APIError");
 const CartDTO = require("../dtos/CartDTO");
+const PaginatedCartDTO = require("../dtos/PaginatedCartDTO");
 const TicketDTO = require("../dtos/TicketDTO");
 function checkOwnsCartOrIsAdmin(req, cid) {
   const user = req.user;
@@ -25,16 +26,6 @@ function checkOwnsCart(req, cid) {
   }
 }
 
-async function getCarts(req, res, next) {
-  try {
-    const carts = (await CartService.getCarts()).map(
-      (cart) => new CartDTO(cart),
-    );
-    sendSuccess(res, { carts });
-  } catch (error) {
-    next(error);
-  }
-}
 async function addCart(req, res, next) {
   try {
     const owner = req.query.owner;
@@ -171,8 +162,27 @@ async function purchase(req, res, next) {
   }
 }
 
+async function getCartsPaginated(req, res, next) {
+  try {
+    const url = req.baseUrl + req.path;
+    const result = await CartService.getCartsPaginated(req.query);
+    result.prevLink = !result.prevPage
+      ? null
+      : buildQueryString(req.query, `${url}`, {
+          page: result.prevPage,
+        });
+    result.nextLink = !result.nextPage
+      ? null
+      : buildQueryString(req.query, `${url}`, {
+          page: result.nextPage,
+        });
+    sendSuccess(res, new PaginatedCartDTO(result));
+  } catch (error) {
+    next(error);
+  }
+}
+
 module.exports = {
-  getCarts,
   addCart,
   addProduct,
   getProducts,
@@ -182,4 +192,5 @@ module.exports = {
   updateQuantity,
   updateQuantityMany,
   purchase,
+  getCartsPaginated,
 };

@@ -6,7 +6,7 @@ const checkAdmin = checkRoles(["admin"]);
 const userOrPremium = checkRoles(["user", "premium"]);
 const checkAny = checkRoles(["any"]);
 
-Router.get("/", checkAdmin, CartController.getCarts);
+Router.get("/", checkAdmin, CartController.getCartsPaginated);
 Router.get("/:cid", checkAny, CartController.getCartById);
 Router.get("/:cid/products/", checkAny, CartController.getProducts);
 Router.post("/", checkAdmin, CartController.addCart);

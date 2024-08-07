@@ -5,6 +5,7 @@ const requireAuth = checkRoles(["any"], { isView: true });
 const adminOrPremium = checkRoles(["admin", "premium"], { isView: true });
 const notloggedin = checkRoles(["notloggedin"], { isView: true });
 const admin = checkRoles(["admin"], { isView: true });
+const userOrPremium = checkRoles(["user", "premium"], { isView: true });
 
 Router.get("/", ViewsController.products);
 Router.get("/products", ViewsController.products);
@@ -13,9 +14,8 @@ Router.get(
   adminOrPremium,
   ViewsController.realTimeProducts,
 );
-Router.get("/carts/:cid", requireAuth, ViewsController.carts);
-Router.get("/carts", requireAuth, ViewsController.carts);
-Router.get("/cart", requireAuth, ViewsController.carts);
+Router.get("/carts/:cid", admin, ViewsController.carts);
+Router.get("/cart", userOrPremium, ViewsController.carts);
 Router.get("/login", notloggedin, ViewsController.login);
 Router.get("/login/:provider", notloggedin, ViewsController.loginCallback);
 Router.get("/register", notloggedin, ViewsController.register);

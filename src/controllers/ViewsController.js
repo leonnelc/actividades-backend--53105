@@ -10,6 +10,11 @@ const jwt = require("jsonwebtoken");
 const { logger } = require("../utils/logger");
 const { JWT_SECRET } = require("../config/config");
 
+const renderError = (next, error) => {
+  error.isView = true;
+  next(error);
+};
+
 async function realTimeProducts(req, res, next) {
   try {
     res.render("realTimeProducts", {
@@ -17,7 +22,7 @@ async function realTimeProducts(req, res, next) {
       user: req.user,
     });
   } catch (error) {
-    next(new ViewsError(error.message));
+    renderError(next, error);
   }
 }
 async function login(req, res, next) {
@@ -25,7 +30,7 @@ async function login(req, res, next) {
     const user = req.user;
     res.render("login", { title: "Login", user });
   } catch (error) {
-    next(new ViewsError(error.message));
+    renderError(next, error);
   }
 }
 
@@ -35,7 +40,7 @@ async function loginCallback(req, res, next) {
     const user = req.user;
     res.render("login", { title: "Login", user, provider });
   } catch (error) {
-    next(error);
+    renderError(next, error);
   }
 }
 
@@ -49,7 +54,7 @@ async function register(req, res, next) {
       registerSuccess: null,
     });
   } catch (error) {
-    next(new ViewsError(error.message));
+    renderError(next, error);
   }
 }
 async function products(req, res, next) {
@@ -77,7 +82,7 @@ async function products(req, res, next) {
       categories,
     });
   } catch (error) {
-    next(new ViewsError(error.message));
+    renderError(next, error);
   }
 }
 async function carts(req, res, next) {
@@ -92,18 +97,7 @@ async function carts(req, res, next) {
       });
     }
     if (!cid) {
-      if (req.user.role !== "admin") {
-        throw new Error("Cart not assigned, contact an administrator");
-      }
-      const carts = [];
-      for (let cart of await CartService.getCarts()) {
-        carts.push({ ...cart._doc });
-      }
-      return res.render("cartSelector", {
-        title: "Cart dashboard",
-        user: req.user,
-        carts,
-      });
+      throw new ViewsError("Cart not assigned, contact an administrator");
     }
     const cart = await CartService.getCartById(cid);
     const products = [];
@@ -120,7 +114,7 @@ async function carts(req, res, next) {
       products,
     });
   } catch (error) {
-    next(new ViewsError(error.message));
+    renderError(next, error);
   }
 }
 async function chat(req, res, next) {
@@ -131,7 +125,7 @@ async function chat(req, res, next) {
       messages: await ChatService.getMessages(),
     });
   } catch (error) {
-    next(new ViewsError(error.message));
+    renderError(next, error);
   }
 }
 async function profile(req, res, next) {
@@ -148,7 +142,7 @@ async function profile(req, res, next) {
       user,
     });
   } catch (error) {
-    next(new ViewsError(error.message));
+    renderError(next, error);
   }
 }
 async function logout(req, res) {

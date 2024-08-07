@@ -1,11 +1,9 @@
 const Cart = require("../models/Cart");
 const { getProductById } = require("./ProductService"); // needed to add products to cart
+const { escapeRegex } = require("../utils/utils");
 const mongoose = require("mongoose");
 const CartError = require("./errors/api/CartError");
 
-async function getCarts() {
-  return await Cart.find();
-}
 async function addCart(owner) {
   if (owner) {
     return await Cart.create({ owner });
@@ -73,13 +71,13 @@ async function updateQuantityMany(cid, items) {
   for (let obj of items) {
     if (obj.product == null || obj.quantity == null) {
       throw new CartError(
-        `Objects must contain the properties product and quantity`
+        `Objects must contain the properties product and quantity`,
       );
     }
     if (!cart.items.has(obj.product)) {
       throw new CartError(
         `Product id ${obj.product} not found in cart id ${cid}`,
-        { name: "NotFound" }
+        { name: "NotFound" },
       );
     }
     if (obj.quantity <= 0) {
@@ -113,7 +111,7 @@ async function purchaseCart(cart) {
       cart.total =
         Math.round(
           (cart.total - (item.product.price * item.quantity + Number.EPSILON)) *
-            100
+            100,
         ) / 100; // magic formula to substract and round perfectly to 2 decimal places
       return;
     }
@@ -153,8 +151,33 @@ async function purchaseCart(cart) {
   return { not_purchased: errors, purchased };
 }
 
+async function getCartsPaginated(
+  queryParams = { page: 1, limit: 10, sort: "_id", order: "asc", q: "" },
+) {
+  let {
+    page = 1,
+    limit = 10,
+    sort = "_id",
+    order = "asc",
+    q = "",
+  } = queryParams;
+  q = q.trim().toLowerCase();
+  const options = {
+    page: parseInt(page),
+    limit: parseInt(limit),
+    sort: { [sort]: order == "asc" ? 1 : -1 },
+  };
+
+  const mongoQuery = q
+    ? { title: { $regex: escapeRegex(q), $options: "i" } }
+    : {};
+
+  const result = await Cart.paginate(mongoQuery, options);
+
+  return result;
+}
+
 module.exports = {
-  getCarts,
   addCart,
   addProduct,
   getCartById,
@@ -164,4 +187,5 @@ module.exports = {
   updateQuantityMany,
   purchase,
   purchaseCart,
+  getCartsPaginated,
 };
