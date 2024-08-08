@@ -4,6 +4,7 @@ function NotFound(req, res) {
   }
   res.status(404).render("message", {
     message: "404 Page not found",
+    user: req.user,
     error: true,
     title: "404 Not found",
   });

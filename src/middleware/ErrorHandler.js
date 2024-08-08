@@ -18,17 +18,23 @@ function ErrorHandler(err, req, res, _next) {
     }
     if (isView) {
       if (view) {
-        return res.status(status).render(view, optionalData);
+        return res
+          .status(status)
+          .render(view, { user: req.user, ...optionalData });
       }
-      return res
-        .status(status)
-        .render("message", { title: "Error", error: true, message });
+      return res.status(status).render("message", {
+        title: "Error",
+        user: req.user,
+        error: true,
+        message,
+      });
     }
     if (options?.redirect) return res.status(status).redirect(message);
     return res
       .status(status)
       .json({ status: "error", message, ...optionalData });
   }
+  if (err.isView) isView = true;
   switch (true) {
     case err instanceof APIError:
       switch (err.name) {
