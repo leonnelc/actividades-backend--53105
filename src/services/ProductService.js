@@ -1,6 +1,11 @@
 const Product = require(`../models/Product`);
 const ProductError = require("./errors/api/ProductError");
 const { escapeRegex } = require("../utils/utils");
+const categories = {
+  categories: [],
+  updatedAt: new Date(0),
+  updateRate: 15 * 60 * 1000,
+};
 
 async function addProduct({
   title,
@@ -24,6 +29,7 @@ async function addProduct({
     status,
     owner,
   });
+  updateCategories();
   return product;
 }
 async function deleteProduct(id) {
@@ -31,6 +37,7 @@ async function deleteProduct(id) {
   if (!product) {
     throw new ProductError(`Product id ${id} not found`);
   }
+  updateCategories();
   return product;
 }
 async function getProductsPaged({ limit, page, query, sort }) {
@@ -82,8 +89,15 @@ async function getProductsPaginated(
   return result;
 }
 
+async function updateCategories() {
+  categories.updatedAt = new Date(Date.now());
+  categories.categories = await Product.distinct(`category`);
+}
+
 async function getCategories() {
-  return await Product.distinct(`category`);
+  if (Date.now() - categories.updatedAt > categories.updateRate)
+    await updateCategories();
+  return categories.categories;
 }
 async function getProducts(limit) {
   if (limit) {
@@ -121,7 +135,9 @@ async function updateProduct(id, obj) {
       }
     }
   }
-  return await product.save();
+  await product.save();
+  updateCategories();
+  return product;
 }
 async function getProductsByOwner(owner) {
   return await Product.find({ owner });
