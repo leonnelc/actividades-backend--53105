@@ -104,19 +104,11 @@ function displayData(items) {
     div.innerHTML = `
             <div class="card-body">
                 <h5 class="card-title">${item.first_name}</h5>
-              <div class="row">
-                <div class="col-8">
                   <p class="card-text">${item.email}</p>
-                </div>
-                <div class="col-4 d-flex justify-content-end">
-                  <button class="btn btn-danger mb-1" onclick=javascript:deleteUser("${item.id}")>Delete user</button>
-                </div>
-              </div>
-              <div class="row">
-                <div class="col-8">
                   <p class="card-text">${item.role}</p>
-                </div>
-                <div class="col-4 d-flex justify-content-end">
+                <p class="card-text">Last login: ${formatDate(new Date() - new Date(item.last_connection))}</p>
+                <div class="d-flex flex-row justify-content-between flex-wrap gap-1">
+                  <button class="btn btn-danger mb-1" onclick=javascript:deleteUser("${item.id}")>Delete user</button>
                   <div class="dropdown">
                     <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton${item.id}" data-bs-toggle="dropdown" aria-expanded="false">Edit role</button>
                     <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton${item.id}">
@@ -124,9 +116,7 @@ function displayData(items) {
                       <li><a class="dropdown-item" href="#" onclick="editRole('${item.id}', 'premium')">Premium</a></li>
                     </ul>
                   </div>
-                </div>
               </div>
-                <p class="card-text">Last login: ${formatDate(new Date() - new Date(item.last_connection))}</p>
             </div>
         `;
     container.appendChild(div);
@@ -140,6 +130,8 @@ function updatePagination(currentPage, totalPages) {
   const pagination = document.getElementById("pagination");
   pagination.innerHTML = "";
 
+  const paginationRange = 3; // Number of page numbers to display around the current page
+
   // Previous button
   const prevLi = document.createElement("li");
   prevLi.className = `page-item ${currentPage === 1 ? "disabled" : ""}`;
@@ -152,15 +144,59 @@ function updatePagination(currentPage, totalPages) {
   pagination.appendChild(prevLi);
 
   // Page numbers
-  for (let i = 1; i <= totalPages; i++) {
+  let startPage = Math.max(currentPage - Math.floor(paginationRange / 2), 1);
+  let endPage = Math.min(startPage + paginationRange - 1, totalPages);
+
+  if (endPage - startPage + 1 < paginationRange) {
+    startPage = Math.max(totalPages - paginationRange + 1, 1);
+    endPage = totalPages;
+  }
+
+  if (startPage > 1) {
+    const firstPageLi = document.createElement("li");
+    firstPageLi.className = "page-item";
+    firstPageLi.innerHTML = `<a class="page-link" href="#" data-page="1">1</a>`;
+    firstPageLi.addEventListener("click", (e) => {
+      e.preventDefault();
+      fetchData(1);
+    });
+    pagination.appendChild(firstPageLi);
+
+    if (startPage > 2) {
+      const ellipsisLi = document.createElement("li");
+      ellipsisLi.className = "page-item disabled";
+      ellipsisLi.innerHTML = `<span class="page-link">...</span>`;
+      pagination.appendChild(ellipsisLi);
+    }
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
     const li = document.createElement("li");
     li.className = `page-item ${i === currentPage ? "active" : ""}`;
-    li.innerHTML = `<a class="page-link" href="#">${i}</a>`;
+    li.innerHTML = `<a class="page-link" href="#" data-page="${i}">${i}</a>`;
     li.addEventListener("click", (e) => {
       e.preventDefault();
-      fetchData(i);
+      fetchData(parseInt(e.target.dataset.page));
     });
     pagination.appendChild(li);
+  }
+
+  if (endPage < totalPages) {
+    if (endPage < totalPages - 1) {
+      const ellipsisLi = document.createElement("li");
+      ellipsisLi.className = "page-item disabled";
+      ellipsisLi.innerHTML = `<span class="page-link">...</span>`;
+      pagination.appendChild(ellipsisLi);
+    }
+
+    const lastPageLi = document.createElement("li");
+    lastPageLi.className = "page-item";
+    lastPageLi.innerHTML = `<a class="page-link" href="#" data-page="${totalPages}">${totalPages}</a>`;
+    lastPageLi.addEventListener("click", (e) => {
+      e.preventDefault();
+      fetchData(parseInt(e.target.dataset.page));
+    });
+    pagination.appendChild(lastPageLi);
   }
 
   // Next button
