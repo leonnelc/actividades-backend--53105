@@ -24,5 +24,6 @@ Router.get("/logout", ViewsController.logout);
 Router.get("/chat", requireAuth, ViewsController.chat);
 Router.get("/resetpassword", notloggedin, ViewsController.resetPassword);
 Router.get("/userDashboard", admin, ViewsController.userDashboard);
+Router.get("/cartDashboard", admin, ViewsController.cartDashboard);
 
 module.exports = Router;

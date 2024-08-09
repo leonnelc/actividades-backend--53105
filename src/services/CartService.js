@@ -169,7 +169,7 @@ async function getCartsPaginated(
   };
 
   const mongoQuery = q
-    ? { title: { $regex: escapeRegex(q), $options: "i" } }
+    ? { owner: { $regex: escapeRegex(q), $options: "i" } }
     : {};
 
   const result = await Cart.paginate(mongoQuery, options);

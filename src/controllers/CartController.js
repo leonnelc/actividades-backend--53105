@@ -77,7 +77,7 @@ async function clearCart(req, res, next) {
     const { cid } = req.params;
     checkOwnsCartOrIsAdmin(req, cid);
     await CartService.clearCart(cid);
-    sendSuccess(res, {});
+    sendSuccess(res, { message: "Cart cleared succesfully" });
   } catch (error) {
     next(error);
   }

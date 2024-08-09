@@ -104,6 +104,7 @@ async function carts(req, res, next) {
     cart.items.forEach((product) => {
       products.push(JSON.parse(JSON.stringify(product)));
     });
+    const ownsCart = cid == req.user.cart;
     const hasProducts = products.length > 0;
     res.render("cart", {
       tile: "Cart",
@@ -112,6 +113,7 @@ async function carts(req, res, next) {
       cid,
       hasProducts,
       products,
+      ownsCart,
     });
   } catch (error) {
     renderError(next, error);
@@ -168,6 +170,10 @@ async function resetPassword(req, res) {
 async function userDashboard(req, res) {
   res.render("userDashboard", { title: "User dashboard", user: req.user });
 }
+
+async function cartDashboard(req, res) {
+  res.render("cartDashboard", { title: "Cart dashboard", user: req.user });
+}
 module.exports = {
   realTimeProducts,
   login,
@@ -180,4 +186,5 @@ module.exports = {
   logout,
   resetPassword,
   userDashboard,
+  cartDashboard,
 };

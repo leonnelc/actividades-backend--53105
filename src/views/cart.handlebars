@@ -1,5 +1,5 @@
-{{#if cartFound}}
 <div class="container">
+{{#if cartFound}}
   <h2 class="display-3 text-center my-4">Shopping Cart</h2>
   <div class="row" id="cart-items" cart-id="{{cid}}">
     {{#if hasProducts}}
@@ -22,9 +22,6 @@
   </div>
 
   <div class="row">
-    <div class="col-md-6">
-      <a href="/products" class="btn btn-primary">Continue Shopping</a>
-    </div>
     <div class="col-md-6 text-right">
       <button type="button" class="btn btn-success mt-1" onclick="javascript:purchaseCart('{{cid}}')">Purchase
         Cart</button>
@@ -32,18 +29,18 @@
     </div>
     {{else}}
     {{> message message="Cart is empty"}}
-    <div class="col-md-6">
-      <a href="/products" class="btn btn-primary">Continue Shopping</a>
-    </div>
+
     {{/if}}
   </div>
-</div>
 {{else}}
 {{> message error=true message="Cart not found"}}
-<div class="col-md-6">
-  <a href="/products" class="btn btn-primary">Continue Shopping</a>
-</div>
 {{/if}}
+  {{#if ownsCart}}
+    <div class="col-md-6 my-2">
+      <a href="/products" class="btn btn-primary">Continue Shopping</a>
+    </div>
+  {{/if}}
+</div>
 <!-- modal -->
 <div class="modal fade" id="purchaseModal" tabindex="-1" role="dialog" aria-labelledby="purchaseModalLabel"
   aria-hidden="true">
