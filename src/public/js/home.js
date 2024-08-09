@@ -32,19 +32,16 @@ resetButton.onclick = () => {
   window.location.search = "";
 };
 
-sortSelector.value = search.get("sort") ?? "";
-categorySelector.value = JSON.parse(search.get("query"))?.category ?? "";
+sortSelector.value = search.get("order") ?? "";
+categorySelector.value = search.get("category") ?? "";
 sortSelector.onchange = (event) => {
-  queryRedirect(["sort"], [event.target.value]);
+  queryRedirect(
+    ["order", "sort"],
+    [event.target.value, event.target.value ? "price" : ""],
+  );
 };
 categorySelector.onchange = (event) => {
-  queryRedirect(
-    ["query", "page"],
-    [
-      event.target.value != "" ? `{"category":"${event.target.value}"}` : "",
-      "",
-    ],
-  );
+  queryRedirect(["category", "page"], [event.target.value, ""]);
 };
 function goBack() {
   queryRedirect(["page"], [1]);

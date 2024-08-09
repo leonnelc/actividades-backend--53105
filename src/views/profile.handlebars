@@ -47,6 +47,7 @@
         </div>
       </div>
     </div>
+    {{#if (neq user.role "admin")}}
     <div class="col-md-6 mb-4">
       <div class="card border-secondary">
         <div class="card-header bg-secondary">
@@ -92,6 +93,7 @@
     </div>
   </div>
 </div>
+{{/if}}
 
 <!-- Avatar Upload Modal -->
 <div class="modal fade" id="avatarUploadModal" tabindex="-1" aria-labelledby="avatarUploadModalLabel"

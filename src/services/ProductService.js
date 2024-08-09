@@ -64,7 +64,14 @@ async function getProductsPaged({ limit, page, query, sort }) {
 }
 
 async function getProductsPaginated(
-  queryParams = { page: 1, limit: 10, sort: "_id", order: "asc", q: "" },
+  queryParams = {
+    page: 1,
+    limit: 10,
+    sort: "_id",
+    order: "asc",
+    q: "",
+    category: undefined,
+  },
 ) {
   let {
     page = 1,
@@ -72,6 +79,7 @@ async function getProductsPaginated(
     sort = "_id",
     order = "asc",
     q = "",
+    category = undefined,
   } = queryParams;
   q = q.trim().toLowerCase();
   const options = {
@@ -80,9 +88,10 @@ async function getProductsPaginated(
     sort: { [sort]: order == "asc" ? 1 : -1 },
   };
 
-  const mongoQuery = !q
-    ? {}
-    : { title: { $regex: escapeRegex(q), $options: "i" } };
+  const mongoQuery = {};
+
+  if (category) mongoQuery.category = category;
+  if (q) mongoQuery.title = { $regex: escapeRegex(q), $options: "i" };
 
   const result = await Product.paginate(mongoQuery, options);
 
