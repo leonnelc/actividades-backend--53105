@@ -114,6 +114,7 @@ async function carts(req, res, next) {
       hasProducts,
       products,
       ownsCart,
+      total: cart.total,
     });
   } catch (error) {
     renderError(next, error);

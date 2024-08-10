@@ -112,8 +112,27 @@ function updateVisibleQuantity(productId, newQuantity) {
   );
   quantityTextElement.textContent = newQuantity;
 }
+
+function addTotal(number) {
+  const totalElement = document.getElementById("total");
+  const total = Number(totalElement.textContent);
+  totalElement.textContent = total + number;
+}
+
+function getItemTotalPrice(productId) {
+  const cardElement = document.querySelector(`#${CSS.escape(productId)}`);
+  const itemPrice = Number(
+    cardElement.querySelector("#price span").textContent,
+  );
+  const itemQuantity = Number(
+    cardElement.querySelector("#quantity input").getAttribute("quantity"),
+  );
+  return itemPrice * itemQuantity;
+}
+
 function removeItem(productId) {
   const cardElement = document.querySelector(`#${CSS.escape(productId)}`);
+  addTotal(-getItemTotalPrice(productId));
   cardElement.remove();
 }
 async function updateQuantity(productId) {
@@ -126,6 +145,7 @@ async function updateQuantity(productId) {
     if (quantityInput.value == quantityInput.getAttribute("quantity")) {
       return;
     }
+    const priceBefore = getItemTotalPrice(productId);
     const response = await fetch(`/api/carts/${cartId}/products/${productId}`, {
       method: "PUT",
       headers: {
@@ -139,11 +159,12 @@ async function updateQuantity(productId) {
     }
     cardElement.setAttribute("data-quantity", quantity);
     if (quantity <= 0) {
-      cardElement.remove();
+      removeItem(productId);
       return appendAlert("Product quantity updated", "info", 2500);
     }
     appendAlert("Product quantity updated", "info", 2500);
     quantityChange(quantityInput, quantity);
+    addTotal(getItemTotalPrice(productId) - priceBefore);
   } catch (error) {
     console.log(error);
     appendAlert("Couldn't update product", "danger", 2500);
