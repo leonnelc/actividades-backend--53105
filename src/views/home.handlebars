@@ -88,9 +88,11 @@
       <h5 class="card-title">{{this.title}}</h5>
       <p class="card-text overflow-auto" style="height: 4.5rem;">{{this.description}}</p>
     </div>
+    {{#if (neq ../user.role "admin")}}
     <button class="btn btn-success mb-2 {{#unless this.status}}disabled{{/unless}}"
       onclick="javascript:addToCart('{{this.id}}')">{{#if this.status}}Add to
       cart{{/if}}{{#unless this.status}}Unavailable{{/unless}}</button>
+    {{/if}}
     <ul class="list-group list-group-flush">
       <li class="bg-transparent list-group-item">$ {{this.price}}</li>
       <li class="bg-transparent list-group-item">{{this.stock}}
