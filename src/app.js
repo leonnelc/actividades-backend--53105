@@ -12,6 +12,7 @@ if (DEBUGGING) {
   logger.info(`${new Date().toUTCString()} | Debugging logs enabled`);
 }
 const app = express();
+app.use(addLogger);
 app.use(compression());
 
 initializePassport();
@@ -32,7 +33,6 @@ app.use(
   swaggerUi.setup(swaggerSpec, { customCssUrl: "/css/swaggerDark.css" }),
 );
 app.use(require("cookie-parser")());
-app.use(addLogger);
 app.use(passport.initialize());
 app.use(require("./middleware/AuthMiddleware.js"));
 if (DISABLE_CACHE) {
