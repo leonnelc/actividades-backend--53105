@@ -1,11 +1,10 @@
 <div class="container">
-{{#if cartFound}}
   <h2 class="display-3 text-center my-4">Shopping Cart</h2>
   <div class="row" id="cart-items" cart-id="{{cid}}">
-    {{#if hasProducts}}
     <div>
       <p>Total: $ <span id="total">{{total}}</span></p>
     </div>
+    {{#if hasProducts}}
     {{#each products}}
     <div class="col-md-4 mb-3" id="{{this.product._id}}" data-title="{{this.product.title}}">
       <div class="card">
@@ -13,8 +12,8 @@
           <h5 class="card-title">{{this.product.title}}</h5>
           <p class="card-text" id="price">Price: <span id="price">{{this.product.price}}</span></p>
           <p class="card-text" id="quantity">Quantity: <input id="quantity" quantity="{{this.quantity}}" name="quantity"
-              type="number" class="border-0 bg-transparent" style="width: 3.2rem;" value={{this.quantity}}><button
-              id="apply" class="btn btn-primary ms-2 transition disabled invisibility"
+              type="number" class="border-0 bg-transparent" style="width: 3.2rem;" min="1" max="{{this.product.stock}}"
+              value={{this.quantity}}><button id="apply" class="btn btn-primary ms-2 transition disabled invisibility"
               onclick="javascript:updateQuantity('{{this.product._id}}')">Apply</button></p>
           <button class="btn btn-secondary" onclick="javascript:removeFromCart('{{this.product._id}}')">Remove
             from cart</button>
@@ -22,8 +21,9 @@
       </div>
     </div>
     {{/each}}
+    {{/if}}
   </div>
-
+  {{#if hasProducts}}
   <div class="row">
     <div class="col-md-6 text-right">
       {{#if ownsCart}}
@@ -32,18 +32,15 @@
       {{/if}}
       <button type="button" class="btn btn-danger mt-1" onclick="javascript:clearCart()">Clear Cart</button>
     </div>
-    {{else}}
-    {{> message message="Cart is empty"}}
-
-    {{/if}}
   </div>
-{{else}}
-{{> message error=true message="Cart not found"}}
-{{/if}}
+  {{/if}}
   {{#if ownsCart}}
-    <div class="col-md-6 my-2">
-      <a href="/products" class="btn btn-primary">Continue Shopping</a>
-    </div>
+  <div class="col-md-6 m-2">
+    <a href="/products" class="btn btn-primary">Continue Shopping</a>
+  </div>
+  {{#unless user}}
+  <div class="col-md-6 m-2"><a class="btn btn-success" href="/login?redirect=cart">Log in to purchase</a></div>
+  {{/unless}}
   {{/if}}
 </div>
 <!-- modal -->

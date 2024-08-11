@@ -15,7 +15,7 @@ Router.get(
   ViewsController.realTimeProducts,
 );
 Router.get("/carts/:cid", admin, ViewsController.carts);
-Router.get("/cart", userOrPremium, ViewsController.carts);
+Router.get("/cart",  ViewsController.carts);
 Router.get("/login", notloggedin, ViewsController.login);
 Router.get("/login/:provider", notloggedin, ViewsController.loginCallback);
 Router.get("/register", notloggedin, ViewsController.register);

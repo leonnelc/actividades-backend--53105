@@ -8,6 +8,7 @@ const cartSchema = new Schema({
     of: {
       product: { type: Schema.Types.ObjectId, ref: "Product", required: true },
       quantity: { type: Number, required: true, default: 1 },
+      _id: false,
     },
     default: {},
   },
@@ -20,7 +21,7 @@ cartSchema.pre("findOne", function (next) {
 });
 // Calculate total and delete invalid items before saving
 cartSchema.pre("save", async function (next) {
-  this.populate("items.$*.product");
+  await this.populate("items.$*.product");
   this.total = 0;
   this.items.forEach((item, id) => {
     if (item.product == null || item.quantity <= 0) {

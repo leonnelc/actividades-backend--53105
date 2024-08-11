@@ -113,10 +113,12 @@ function updateVisibleQuantity(productId, newQuantity) {
   quantityTextElement.textContent = newQuantity;
 }
 
-function addTotal(number) {
+function addTotal(number, set = false) {
   const totalElement = document.getElementById("total");
   const total = Number(totalElement.textContent);
-  totalElement.textContent = total + number;
+  if (isNaN(number) || isNaN(total)) return;
+  totalElement.textContent = `${(total + Number(number)).toFixed(2)}`;
+  if (set) totalElement.textContent = `${number}`;
 }
 
 function getItemTotalPrice(productId) {
@@ -127,7 +129,7 @@ function getItemTotalPrice(productId) {
   const itemQuantity = Number(
     cardElement.querySelector("#quantity input").getAttribute("quantity"),
   );
-  return itemPrice * itemQuantity;
+  return Number((itemPrice * itemQuantity).toFixed(2));
 }
 
 function removeItem(productId) {
@@ -214,3 +216,71 @@ getQuantityElements().forEach((element) => {
     quantityChange(element);
   });
 });
+
+async function addLocalCart() {
+  if (!localStorage.cart || !cartId) return;
+  await fetch(`/api/carts/${cartId}/products`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: localStorage.cart,
+  });
+  localStorage.removeItem("cart");
+  window.location.reload();
+}
+
+function updateLocalQuantity(id) {
+  const cart = JSON.parse(localStorage.cart);
+  const quantityInput = document.querySelector(
+    `#${CSS.escape(id)} #quantity input`,
+  );
+  const newQuantity = quantityInput.valueAsNumber;
+  const prevQuantity = Number(cart[id].quantity);
+  cart[id].quantity = newQuantity;
+  localStorage.cart = JSON.stringify(cart);
+  addTotal(
+    Number(
+      (
+        (quantityInput.valueAsNumber - prevQuantity) *
+        Number(cart[id].price)
+      ).toFixed(2),
+    ),
+  );
+}
+
+function removeFromLocalCart(id) {
+  const cart = JSON.parse(localStorage.cart);
+  cart[id] = undefined;
+  localStorage.cart = JSON.stringify(cart);
+  removeItem(id);
+}
+
+async function renderLocalCart() {
+  if (!localStorage.cart || cartId) return;
+  const cart = JSON.parse(localStorage.cart);
+  const cartContainer = document.getElementById("cart-items");
+  addTotal(0, true);
+  for (let id of Object.keys(cart)) {
+    const product = cart[id];
+    const quantity = cart[id].quantity;
+    const cardElement = document.createElement("div");
+    cardElement.classList.add("col-md-4", "mb-3");
+    cardElement.setAttribute("data-title", product.title);
+    cardElement.setAttribute("id", id);
+    cardElement.innerHTML = `
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">${product.title}</h5>
+          <p class="card-text" id="price">Price: <span id="price">${product.price}</span></p>
+          <p class="card-text" id="quantity">Quantity: <input id="quantity" min="1" quantity="${quantity}" name="quantity"
+              type="number" class="border-0 bg-transparent" style="width: 3.2rem;" value=${quantity} onchange="javascript:updateLocalQuantity('${id}')"></p>
+          <button class="btn btn-secondary" onclick="javascript:removeFromLocalCart('${id}')">Remove
+            from cart</button>
+        </div>
+      </div>`;
+    cartContainer.appendChild(cardElement);
+    addTotal(Number((Number(product.price) * Number(quantity)).toFixed(2)));
+  }
+}
+
+addLocalCart();
+renderLocalCart();

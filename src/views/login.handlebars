@@ -45,6 +45,7 @@
     const emailDiv = document.getElementById("emailDiv");
     const passwordDiv = document.getElementById("passwordDiv");
 
+    const searchParams = new URLSearchParams(window.location.search)
     {{#if provider}}
     const queries = window.location.search;
     spinner.classList.remove("d-none");
@@ -53,7 +54,7 @@
     passwordDiv.classList.add("d-none");
     fetch(`/api/sessions/{{provider}}/callback${queries}`, {method: "GET"}).then((response) => {
       if (response.ok) {
-        window.location.href = "/profile"
+        window.location.href = `/${searchParams.get("redirect") ?? "profile"}`
       }
       else {
         errorMessageDiv.textContent = "An error has occurred with the provider '{{provider}}'";
@@ -89,7 +90,7 @@
           });
           response.json().then(data => {
             if (response.ok) {
-              window.location.href = "/profile";
+              window.location.href = `/${searchParams.get("redirect") ?? "profile"}`;
             } else {
               throw new Error(data.message || 'An error occurred');
             }

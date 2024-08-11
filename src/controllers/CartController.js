@@ -62,6 +62,21 @@ async function addProduct(req, res, next) {
     next(error);
   }
 }
+
+async function addProducts(req, res, next) {
+  try {
+    const { cid } = req.params;
+    checkOwnsCartOrIsAdmin(req, cid);
+    sendSuccess(res, {
+      message: "Products added succesfuly",
+      cart: await CartService.addProducts(cid, req.body),
+    });
+  } catch (error) {
+    console.log(error);
+    next(error);
+  }
+}
+
 async function getCartById(req, res, next) {
   try {
     const { cid } = req.params;
@@ -185,6 +200,7 @@ async function getCartsPaginated(req, res, next) {
 module.exports = {
   addCart,
   addProduct,
+  addProducts,
   getProducts,
   removeProduct,
   getCartById,

@@ -11,6 +11,7 @@ Router.get("/:cid", checkAny, CartController.getCartById);
 Router.get("/:cid/products/", checkAny, CartController.getProducts);
 Router.post("/", checkAdmin, CartController.addCart);
 Router.post("/:cid/products/:pid", checkAny, CartController.addProduct);
+Router.post("/:cid/products", checkAny, CartController.addProducts);
 Router.post("/:cid/purchase", userOrPremium, CartController.purchase);
 Router.delete("/:cid", checkAny, CartController.clearCart);
 Router.delete("/:cid/products/:pid", checkAny, CartController.removeProduct);

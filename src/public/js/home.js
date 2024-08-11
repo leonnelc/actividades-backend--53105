@@ -47,6 +47,20 @@ function goBack() {
   queryRedirect(["page"], [1]);
 }
 
+function addToLocalCart(productId) {
+  const cardElement = document.getElementById(productId);
+  const price = Number(cardElement.getAttribute("price"));
+  const title = cardElement.getAttribute("title");
+  const localCart = JSON.parse(localStorage.getItem("cart") ?? "{}");
+  if (localCart[productId]) {
+    localCart[productId].quantity += 1;
+  } else {
+    localCart[productId] = { title, price, quantity: 1 };
+  }
+  localStorage.setItem("cart", JSON.stringify(localCart));
+  appendAlert("Product added", "success");
+}
+
 async function addToCart(productId) {
   try {
     const response = await fetch(`/api/carts/${cartId}/products/${productId}`, {
@@ -60,7 +74,7 @@ async function addToCart(productId) {
   } catch (error) {
     switch (error.name) {
       case "ReferenceError":
-        return appendAlert("Log in before adding products", "info", 2500);
+        return addToLocalCart(productId);
       default:
         appendAlert("Couldn't add product", "danger", 2500);
     }

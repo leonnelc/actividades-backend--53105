@@ -34,6 +34,27 @@ async function addProduct(cid, pid, quantity) {
   await cart.save();
   return cart;
 }
+
+async function addProducts(cid, products = {}) {
+  const cart = await getCartById(cid);
+  for (let product of Object.keys(products)) {
+    let quantity = parseInt(products[product].quantity) || 1;
+    if (quantity < 1) quantity = 1;
+    if (cart.items.has(product)) {
+      cart.items.get(product).quantity += quantity;
+    } else {
+      const productFound = await getProductById(product);
+      if (!productFound.status) continue;
+      cart.items.set(product, {
+        product: productFound._id,
+        quantity,
+      });
+    }
+  }
+  await cart.save();
+  return cart;
+}
+
 async function removeProduct(cid, pid) {
   const cart = await getCartById(cid);
   if (!cart.items.has(pid)) {
@@ -180,6 +201,7 @@ async function getCartsPaginated(
 module.exports = {
   addCart,
   addProduct,
+  addProducts,
   getCartById,
   clearCart,
   removeProduct,

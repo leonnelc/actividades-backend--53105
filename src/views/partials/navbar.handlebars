@@ -3,7 +3,7 @@
     <a class="navbar-brand" href="/">
       Ecommerce
     </a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+    <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
       aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
@@ -29,18 +29,19 @@
         <li class="nav-item"><a class="nav-link" href="/realtimeproducts"><i class="bi bi-clock-history me-2"></i>Real
             Time
             Products</a></li>
-        </li>
         <li class="nav-item"><a class="nav-link" href="/userDashboard"><i class="bi bi-person-lines-fill me-2"></i>User
-            Dashboard</a>
-        <li class="nav-item"><a class="nav-link" href="/cartDashboard"><i class="bi bi-cart-check me-2"></i>Cart dashboard</a></li>
-          {{/if}}
-          {{#if user}}
-          <!-- Logged in routes -->
+            Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link" href="/cartDashboard"><i class="bi bi-cart-check me-2"></i>Cart
+            dashboard</a></li>
+        {{/if}}
+        {{#if user}}
+        <!-- Logged in routes -->
         <li class="nav-item"><a class="nav-link" href="/chat"><i class="bi bi-chat-dots me-2"></i>Chat</a></li>
         <li class="nav-item"><a class="nav-link" href="/logout"><i class="bi bi-box-arrow-right me-2"></i>Logout</a>
         </li>
         {{else}}
         <!-- Logged out routes -->
+        <li class="nav-item"><a class="nav-link" href="/cart"><i class="bi bi-basket me-2"></i>Cart</a></li>
         <li class="nav-item"><a class="nav-link" href="/login"><i class="bi bi-box-arrow-in-right me-2"></i>Login</a>
         </li>
         <li class="nav-item"><a class="nav-link" href="/register"><i class="bi bi-person-plus me-2"></i>Register</a>

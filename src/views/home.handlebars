@@ -80,12 +80,13 @@
 <!-- Product cards -->
 <div class="row d-flex justify-content-center m-0 gap-2">
   {{#each result.items}}
-  <div class="card col-12 col-sm-5 col-md-3 col-lg-2 m-0 my-3 m-sm-1 m-md-2 bg-dark-subtle animation-lift border-0">
+  <div class="card col-12 col-sm-5 col-md-3 col-lg-2 m-0 my-3 m-sm-1 m-md-2 bg-dark-subtle animation-lift border-0"
+    price="{{this.price}}" title="{{this.title}}" id="{{this.id}}">
     {{#each this.thumbnails}}
     <img src="{{this}}" class="card-img-top img-fluid object-fit-cover" alt="Product image couldn't load" />
     {{/each}}
     <div class="card-body">
-      <h5 class="card-title">{{this.title}}</h5>
+      <h5 class="card-title" id="title">{{this.title}}</h5>
       <p class="card-text overflow-auto" style="height: 4.5rem;">{{this.description}}</p>
     </div>
     {{#if (neq ../user.role "admin")}}

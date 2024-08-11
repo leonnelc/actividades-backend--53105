@@ -88,7 +88,7 @@ async function products(req, res, next) {
 async function carts(req, res, next) {
   try {
     let cid = req.params?.cid ?? req.user?.cart;
-    if (req.user.cart != cid && req.user.role != "admin") {
+    if (req.user?.cart != cid && req.user?.role != "admin") {
       return res.render("message", {
         title: "Error",
         user: req.user,
@@ -96,15 +96,13 @@ async function carts(req, res, next) {
         message: "You are not authorized to see other people's carts!",
       });
     }
-    if (!cid) {
-      throw new ViewsError("Cart not assigned, contact an administrator");
-    }
-    const cart = await CartService.getCartById(cid);
+    const cart = cid ? await CartService.getCartById(cid) : null;
     const products = [];
-    cart.items.forEach((product) => {
-      products.push(JSON.parse(JSON.stringify(product)));
-    });
-    const ownsCart = cid == req.user.cart;
+    if (cid)
+      cart.items.forEach((product) => {
+        products.push(JSON.parse(JSON.stringify(product)));
+      });
+    const ownsCart = cid == req.user?.cart;
     const hasProducts = products.length > 0;
     res.render("cart", {
       tile: "Cart",
@@ -114,7 +112,7 @@ async function carts(req, res, next) {
       hasProducts,
       products,
       ownsCart,
-      total: cart.total,
+      total: cart?.total ?? 0,
     });
   } catch (error) {
     renderError(next, error);
