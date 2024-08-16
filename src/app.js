@@ -12,6 +12,7 @@ if (DEBUGGING) {
   logger.info(`${new Date().toUTCString()} | Debugging logs enabled`);
 }
 const app = express();
+app.enable("trust proxy");
 app.use(addLogger);
 app.use(compression());
 
