@@ -31,6 +31,5 @@ Router.get("/github", AuthController.githubLogin);
 Router.get("/github/callback", AuthController.githubCallback);
 Router.get("/current", AuthController.current);
 Router.get("/logout", AuthController.logout);
-Router.delete("/tokens/:uid", checkLoggedIn, AuthController.deleteTokens);
 
 module.exports = Router;

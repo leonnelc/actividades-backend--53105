@@ -34,5 +34,23 @@ Router.delete("/:uid", admin, UserController.deleteUser);
 Router.delete("/", admin, UserController.deleteInactiveUsers);
 Router.get("/", admin, UserController.getUsersPaginated);
 Router.put("/:uid/role/:role", admin, UserController.updateRole);
+Router.get(
+  "/:uid/tokens",
+  loggedin,
+  UserController.isSameUserOrAdmin,
+  UserController.getUserTokens,
+);
+Router.delete(
+  "/:uid/tokens",
+  loggedin,
+  UserController.isSameUserOrAdmin,
+  UserController.deleteTokens,
+);
+Router.delete(
+  "/:uid/tokens/:tokenId",
+  loggedin,
+  UserController.isSameUserOrAdmin,
+  UserController.deleteToken,
+);
 
 module.exports = Router;

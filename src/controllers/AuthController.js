@@ -148,21 +148,7 @@ async function googleCallback(req, res, next) {
   )(req, res, next);
 }
 
-async function deleteTokens(req, res, next) {
-  try {
-    const { uid } = req.params;
-    if (uid != req.user.id && req.user.role != "admin") {
-      throw new AuthError(`Not authorized`);
-    }
-    const result = await RefreshTokenService.deleteAllTokens(uid);
-    sendSuccess(res, {
-      message: `Refresh tokens deleted`,
-      count: result.deletedCount,
-    });
-  } catch (error) {
-    next(error);
-  }
-}
+
 
 module.exports = {
   logout,
@@ -174,5 +160,4 @@ module.exports = {
   googleLogin,
   googleCallback,
   checkRoles,
-  deleteTokens,
 };

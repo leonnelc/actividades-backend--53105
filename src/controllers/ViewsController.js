@@ -143,6 +143,9 @@ async function profile(req, res, next) {
       user,
     });
   } catch (error) {
+    if (error.name == "InvalidRefreshToken") {
+      return res.redirect("/login");
+    }
     renderError(next, error);
   }
 }

@@ -92,6 +92,15 @@
       </div>
     </div>
   </div>
+  <div class="row">
+    <div>
+      <button class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#collapseSessions">Active
+        sessions</button>
+      <div class="collapse my-1" id="collapseSessions">
+      </div>
+    </div>
+  </div>
+
 </div>
 {{/if}}
 
@@ -147,6 +156,27 @@
           <button type="submit" class="btn btn-primary mt-3">Upload</button>
         </form>
         <div id="documentUploadStatus" class="mt-3" style="display: none;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- End session modal  -->
+<div class="modal fade" id="endSessionModal" tabindex="-1" aria-labelledby="endSessionModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="endSessionModalLabel">End Session</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to end this session?</p>
+        <p class="text-muted"><i class="bi bi-info-circle me-2"></i>It may take up to 15 minutes for this change to take
+          effect.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-danger" id="confirmEndSession">End Session</button>
       </div>
     </div>
   </div>
@@ -279,5 +309,116 @@
           });
       });
     }
+
+    // Show active sessions logic
+    const sessionsContainer = document.getElementById("collapseSessions");
+    const confirmEndSessionBtn = document.getElementById("confirmEndSession");
+    const endSessionModalElement = document.getElementById("endSessionModal");
+    const endSessionModal = new bootstrap.Modal(endSessionModalElement);
+    confirmEndSessionBtn.addEventListener("click", endSession);
+    let activeSessions;
+    function setModalTokenId(tokenId) {
+      endSessionModalElement.setAttribute("token-id", tokenId);
+    }
+    function endSession() {
+      confirmEndSessionBtn.disabled = true;
+      const tokenId = endSessionModalElement.getAttribute("token-id");
+      fetch(`/api/users/{{user.id}}/tokens/${tokenId}`, {method: "DELETE"}).then((response) => {
+        if (!response.ok) return console.log(`Error deleting user token`);
+        endSessionModal.hide();
+        fetchSessions();
+      }).finally(() => {
+        confirmEndSessionBtn.disabled = false;
+      })
+
+    }
+    function displaySessions() {
+      sessionsContainer.innerHTML = "";
+      for (let session of activeSessions) {
+        const div = document.createElement("div");
+        div.id = session.id;
+        div.className = "card mb-3";
+        const cardHeader = document.createElement("div");
+        cardHeader.className = "card-header";
+        const cardTitle = document.createElement("h6");
+        cardTitle.className = "card-title mb-0"
+        cardTitle.innerHTML = "Session Details";
+        cardHeader.appendChild(cardTitle);
+        div.appendChild(cardHeader);
+        const cardBody = document.createElement("div");
+        cardBody.className = "card-body";
+        const ul = document.createElement("ul");
+        ul.className = "list-group list-group-flush";
+        ul.innerHTML = `
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-laptop me-2"></i>Platform</span>
+                <span class="text-muted">${session.platform}</span>
+              </li>
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-globe me-2"></i>Browser</span>
+                <span class="text-muted">${session.browser}</span>
+              </li>
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-clock me-2"></i>Created at</span>
+                <span class="text-muted">${new Date(session.createdAt)}</span>
+              </li>`
+        cardBody.appendChild(ul);
+        const deleteBtn = document.createElement("button");
+        deleteBtn.className = "btn btn-danger btn-sm"
+        deleteBtn.innerHTML = "End Session";
+        deleteBtn.setAttribute("data-bs-toggle", "modal");
+        deleteBtn.setAttribute("data-bs-target", "#endSessionModal")
+        deleteBtn.addEventListener("click", () => {
+          setModalTokenId(session.id);
+        })
+        cardBody.appendChild(deleteBtn);
+        div.appendChild(cardBody);
+        let test = `
+          <div class="card-header">
+            <h6 class="card-title mb-0">Session Details</h6>
+        </div>
+          <div class="card-body">
+            <ul class="list-group list-group-flush">
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-laptop me-2"></i>Platform</span>
+                <span class="text-muted">${session.platform}</span>
+              </li>
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-globe me-2"></i>Browser</span>
+                <span class="text-muted">${session.browser}</span>
+              </li>
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-clock me-2"></i>Created at</span>
+                <span class="text-muted">${new Date(session.createdAt)}</span>
+              </li>
+            </ul>
+            <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#endSessionModal" onclick="javascript:setModalTokenId(${session.id})">
+                  End Session
+                </button>
+          </div>
+        `
+        sessionsContainer.appendChild(div);
+      }
+      const endAllSessionsBtn = document.createElement("button");
+      endAllSessionsBtn.className = "btn btn-danger";
+      endAllSessionsBtn.innerHTML = "End all active sessions";
+      endAllSessionsBtn.addEventListener("click", () => {
+        endAllSessionsBtn.disabled = true;
+        fetch("/api/users/{{user.id}}/tokens", {method: "DELETE"}).then((response) => {
+          if (response.ok)
+            window.navigation.reload()
+        }).finally(() => {endAllSessionsBtn.disabled = false;})
+      })
+    sessionsContainer.appendChild(endAllSessionsBtn);
+    }
+    function fetchSessions() {
+      fetch("/api/users/{{user.id}}/tokens", {method: "GET"}).then((response) => {
+        response.json().then((result) => {
+          activeSessions = result.tokens;
+          displaySessions();
+        })
+      })
+    }
+    fetchSessions();
   });
 </script>

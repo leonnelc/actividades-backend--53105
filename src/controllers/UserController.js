@@ -1,9 +1,11 @@
 const fs = require("fs");
 const UserService = require("../services/UserService");
 const MailService = require("../services/MailService");
+const RefreshTokenService = require("../services/RefreshTokenService");
 const APIError = require("../services/errors/APIError");
 const { sendSuccess } = require("./ControllerUtils");
 const UserDTO = require("../dtos/UserDTO");
+const UserAgent = require("express-useragent");
 function UsersDTO(users) {
   const usersDTO = [];
   for (const user of users) {
@@ -246,6 +248,60 @@ async function updateRole(req, res, next) {
   }
 }
 
+async function isSameUserOrAdmin(req, res, next) {
+  const { uid } = req.params;
+  if (req?.user?.id == uid || req?.user?.role == "admin") {
+    next();
+  } else {
+    next(new APIError(`Not Authorized`, { name: "NotAuthorized" }));
+  }
+}
+
+async function getUserTokens(req, res, next) {
+  try {
+    const { uid } = req.params;
+    const tokens = await RefreshTokenService.getUserTokens(uid);
+    const formattedTokens = [];
+    tokens.forEach((token) => {
+      const parsedUserAgent = UserAgent.parse(token.userAgent);
+      const { browser, platform } = parsedUserAgent;
+      formattedTokens.push({
+        browser,
+        platform,
+        id: token._id,
+        createdAt: token.createdAt,
+        expiresAt: token.expiresAt,
+      });
+    });
+    sendSuccess(res, { tokens: formattedTokens });
+  } catch (error) {
+    next(error);
+  }
+}
+
+async function deleteTokens(req, res, next) {
+  try {
+    const { uid } = req.params;
+    const result = await RefreshTokenService.deleteAllTokens(uid);
+    sendSuccess(res, {
+      message: `Refresh tokens deleted`,
+      count: result.deletedCount,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+async function deleteToken(req, res, next) {
+  try {
+    const { uid, tokenId } = req.params;
+    const result = await RefreshTokenService.deleteToken(tokenId);
+    sendSuccess(res, { message: "Refresh token deleted" });
+  } catch (error) {
+    next(error);
+  }
+}
+
 module.exports = {
   togglePremium,
   resetPassword,
@@ -259,4 +315,8 @@ module.exports = {
   getUsers,
   getUsersPaginated,
   updateRole,
+  getUserTokens,
+  isSameUserOrAdmin,
+  deleteToken,
+  deleteTokens,
 };

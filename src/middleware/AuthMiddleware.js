@@ -2,10 +2,9 @@ const passport = require("passport");
 const { JWT_SECRET } = require("../config/config");
 const JWT = require("jsonwebtoken");
 const UserService = require("../services/UserService");
-const {
-  createJWT,
-  createAccessToken,
-} = require("../services/RefreshTokenService");
+const UserDTO = require("../dtos/UserDTO");
+const AuthError = require("../services/errors/AuthError");
+const { createAccessToken } = require("../services/RefreshTokenService");
 
 function AuthMiddleware(req, res, next) {
   passport.authenticate(
@@ -15,6 +14,8 @@ function AuthMiddleware(req, res, next) {
       req.refreshAccessToken = async (user) => {
         try {
           res.clearCookie("accessToken");
+          const ipAddress = req.ip;
+          const userAgent = req.headers["user-agent"] || "unknown";
           const refreshToken = req.cookies?.refreshToken;
           if (!refreshToken) return;
           const { userId } = JWT.verify(refreshToken, JWT_SECRET);
@@ -24,19 +25,28 @@ function AuthMiddleware(req, res, next) {
           }
           user.last_connection = new Date();
           await user.save();
+          const userDTO = new UserDTO(user);
+          const accessToken = await createAccessToken({
+            data: { user: userDTO },
+            userId,
+            refreshToken,
+            userAgent,
+            ipAddress,
+          });
 
-          const jwt = await createAccessToken(user, refreshToken);
-
-          res.cookie("accessToken", jwt.accessToken, {
+          res.cookie("accessToken", accessToken, {
             priority: "high",
             httpOnly: true,
             sameSite: "strict", // Protect against CSRF
             maxAge: 15 * 60 * 1000, // 15 minutes
           });
-          req.user = jwt.user;
+          req.user = userDTO;
         } catch (error) {
-          req.logger.debug(`refreshAccessToken error: ${error.message}`);
           res.clearCookie("refreshToken");
+          res.clearCookie("accessToken");
+          throw new AuthError(`Invalid refresh token`, {
+            name: "InvalidRefreshToken",
+          });
         }
       };
       if (!accessToken) {

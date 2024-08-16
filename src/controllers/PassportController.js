@@ -40,7 +40,9 @@ async function registerLocal(req, username, password, done) {
       password,
       last_connection: new Date(),
     });
-    const jwt = await createJWT(user);
+    const ipAddress = req.ip;
+    const userAgent = req.headers["user-agent"] || "Unknown";
+    const jwt = await createJWT({ user, userAgent, ipAddress });
     done(null, jwt);
   } catch (error) {
     return done(error);
@@ -59,7 +61,9 @@ async function loginLocal(req, email, password, done) {
     }
     user.last_connection = new Date();
     await user.save();
-    const jwt = await createJWT(user);
+    const ipAddress = req.ip;
+    const userAgent = req.headers["user-agent"] || "Unknown";
+    const jwt = await createJWT({ user, userAgent, ipAddress });
     done(null, jwt);
   } catch (error) {
     return done(error);
@@ -85,7 +89,9 @@ async function loginGithub(req, accessToken, refreshToken, profile, done) {
     });
     user.last_connection = new Date();
     await user.save();
-    const jwt = await createJWT(user);
+    const ipAddress = req.ip;
+    const userAgent = req.headers["user-agent"] || "Unknown";
+    const jwt = await createJWT({ user, userAgent, ipAddress });
     done(null, jwt);
   } catch (error) {
     return done(error);
@@ -107,7 +113,9 @@ async function loginGoogle(req, accessToken, refreshToken, profile, done) {
     });
     user.last_connection = new Date();
     await user.save();
-    const jwt = await createJWT(user);
+    const ipAddress = req.ip;
+    const userAgent = req.headers["user-agent"] || "Unknown";
+    const jwt = await createJWT({ user, userAgent, ipAddress });
     done(null, jwt);
   } catch (error) {
     return done(error);
