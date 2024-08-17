@@ -3,8 +3,12 @@
   <main class="chat-messages scrollbar-hidden" id="chat-messages">
     {{#each messages}}
     <div class="message" id="{{this._id}}" data-user="{{this.user}}">
-      <div class="message-user">
-        <span class="message-username">{{this.user}}</span>
+      <div class="d-flex flex-row justify-content-between flex-wrap">
+          <div class="message-user">
+            <span class="message-username">{{this.user}}</span>
+          </div>
+        <div class="message-buttons">
+        </div>
       </div>
       <div class="message-content">
         <p>{{this.message}}</p>
@@ -13,15 +17,29 @@
     {{/each}}
   </main>
   <form class="chat-input" id="chat-input" action="javascript:sendMessage()">
-    <textarea
-      name="message"
-      id="message"
-      placeholder="Type your message..."
-      class="chat-input-field"></textarea>
+    <textarea name="message" id="message" placeholder="Type your message..." class="chat-input-field"></textarea>
     <button type="submit" class="chat-send-button">
       <i class="bi bi-send-fill"></i>
     </button>
   </form>
+</div>
+<!-- The Modal -->
+<div class="modal fade" id="editMessageModal" tabindex="-1" aria-labelledby="editMessageModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content"><!-- Modal Header -->
+      <div class="modal-header">
+        <h5 class="modal-title" id="editMessageModalLabel">Edit Message</h5><button type="button" class="btn-close"
+          data-bs-dismiss="modal" aria-label="Close"></button>
+      </div><!-- Modal Body -->
+      <div class="modal-body">
+        <form id="editMessageForm">
+          <div class="mb-3"><label for="editMessageInput" class="form-label">Message</label><input type="text"
+              class="form-control" id="editMessageInput" placeholder="Enter your message" required></div>
+              <input type="submit" id="saveMessageButton" value="Save changes" class="btn btn-primary">
+        </form>
+      </div>
+    </div>
+  </div>
 </div>
 <script src="https://cdn.socket.io/4.7.3/socket.io.min.js"></script>
 <script src="js/chat.js"></script>

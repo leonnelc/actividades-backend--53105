@@ -3,6 +3,17 @@ const socket = io();
 const chatInput = document.getElementById("chat-input");
 const messageBox = document.getElementById("message");
 const chatMessages = document.getElementById("chat-messages");
+const editMessageModalElement = document.getElementById("editMessageModal");
+const editMessageInput = document.getElementById("editMessageInput");
+const editMessageForm = document.getElementById("editMessageForm");
+let editMessageModal;
+document.addEventListener("DOMContentLoaded", () => {
+  editMessageModal = new bootstrap.Modal(editMessageModalElement);
+})
+editMessageModalElement.addEventListener("shown.bs.modal", () => {
+  editMessageInput.focus();
+})
+editMessageForm.addEventListener("submit", handleSaveMessageInput);
 let currentUser;
 socket.emit("chat:join");
 socket.on("chat:success", () => {
@@ -24,21 +35,19 @@ function checkMessages() {
       continue;
     }
     const contentElement = msg.querySelector(".message-content");
-    const buttonContainer = document.createElement("span");
+    const textElement = contentElement.querySelector("p");
+    const buttonContainer = msg.querySelector(".message-buttons");
 
     const updateBtn = document.createElement("i");
     updateBtn.onclick = () => {
-      socket.emit("chat:updateMessage", {
-        id: msg.id,
-        message: messageBox.value,
-      });
+      showEditMessageModal({ messageId:msg.id, messageContent:textElement.innerText })
     };
-    updateBtn.classList.add("bi", "bi-pencil");
+    updateBtn.classList.add("btn", "bi", "bi-pencil");
     const deleteBtn = document.createElement("i");
     deleteBtn.onclick = () => {
       socket.emit("chat:deleteMessage", msg.id);
     };
-    deleteBtn.classList.add("bi", "bi-trash");
+    deleteBtn.classList.add("btn", "bi", "bi-trash");
 
     buttonContainer.appendChild(updateBtn);
     buttonContainer.appendChild(deleteBtn);
@@ -46,7 +55,7 @@ function checkMessages() {
     //updateButton.appendChild(updateBtnIcon);
     //contentElement.appendChild(updateButton);
     //contentElement.appendChild(deleteButton);
-    contentElement.appendChild(buttonContainer);
+    //contentElement.appendChild(buttonContainer);
   }
 }
 
@@ -71,6 +80,8 @@ function addMessage(username, message, id) {
   messageElement.classList.add("message");
   messageElement.setAttribute("id", id);
   messageElement.setAttribute("data-user", username);
+  const headerElement = document.createElement("div");
+  headerElement.className = "d-flex flex-row justify-content-between flex-wrap";
   const userElement = document.createElement("div");
   userElement.classList.add("message-user");
 
@@ -84,26 +95,44 @@ function addMessage(username, message, id) {
   const messageParagraph = document.createElement("p");
   messageParagraph.textContent = message;
 
-  const buttonContainer = document.createElement("span");
+  const buttonContainer = document.createElement("div");
+  buttonContainer.className = "message-buttons"
   const updateBtn = document.createElement("i");
   updateBtn.onclick = () => {
-    socket.emit("chat:updateMessage", { id, message: messageBox.value });
+    showEditMessageModal({messageId:id, messageContent:messageParagraph.textContent});
   };
-  updateBtn.classList.add("bi", "bi-pencil");
+  updateBtn.classList.add("btn", "bi", "bi-pencil");
   const deleteBtn = document.createElement("i");
   deleteBtn.onclick = () => {
     socket.emit("chat:deleteMessage", id);
   };
-  deleteBtn.classList.add("bi", "bi-trash");
+  deleteBtn.classList.add("btn", "bi", "bi-trash");
 
   buttonContainer.appendChild(updateBtn);
   buttonContainer.appendChild(deleteBtn);
   contentElement.appendChild(messageParagraph);
-  if (canDeleteMessage(username)) contentElement.appendChild(buttonContainer);
+
   userElement.appendChild(usernameSpan);
-  messageElement.appendChild(userElement);
+  headerElement.appendChild(userElement);
+  if (canDeleteMessage(username)) headerElement.appendChild(buttonContainer);
+  messageElement.appendChild(headerElement);
   messageElement.appendChild(contentElement);
   chatMessages.appendChild(messageElement);
+}
+
+function showEditMessageModal({messageId, messageContent}) {
+  editMessageInput.value = messageContent;
+  editMessageModalElement.setAttribute("message-id", messageId);
+  editMessageModal.show();
+}
+
+function handleSaveMessageInput(event) {
+  event.preventDefault();
+  const messageId = editMessageModalElement.getAttribute("message-id");
+  const newMessage = editMessageInput.value;
+  console.log(`Message id: ${messageId}, New message: ${newMessage}`);
+  socket.emit("chat:updateMessage", { id:messageId, message: newMessage });
+  editMessageModal.hide();
 }
 
 socket.on("error", (error) => {
