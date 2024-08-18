@@ -340,12 +340,12 @@ components:
           type: integer
           description: Product stock
           example: 40
-        thumbnails:
+        thumbnail:
           type: array
           items:
             type: string
-            example: images/404-error.png
-          description: Product thumbnails
+            example: images/404-not-found.jpg
+          description: Product thumbnail
         status:
           type: boolean
           example: true

@@ -8,7 +8,7 @@ function createRandomProduct() {
     category: faker.commerce.product(),
     price: faker.commerce.price(),
     stock: faker.number.int({ min: 1, max: 200 }),
-    thumbnails: faker.image.url(),
+    thumbnail: faker.image.url(),
     status: true,
     code: faker.string.uuid(),
   };

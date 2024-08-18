@@ -11,7 +11,7 @@ async function addProduct({
   title,
   description,
   price,
-  thumbnails,
+  thumbnail,
   code,
   stock,
   category,
@@ -22,7 +22,7 @@ async function addProduct({
     title,
     description,
     price,
-    thumbnails,
+    thumbnail,
     code,
     stock,
     category,
@@ -152,6 +152,28 @@ async function getProductsByOwner(owner) {
   return await Product.find({ owner });
 }
 
+async function uploadProductImage(pid, image) {
+  const product = await getProductById(pid);
+  if (product.images.includes(image)) return product.images;
+  product.images.push(image);
+  await product.save();
+  return product.images;
+}
+
+async function deleteProductImage(pid, imagePath) {
+  const product = await getProductById(pid);
+  const imageIndex = product.images.find((path) => {
+    path == imagePath;
+  });
+  if (imageIndex == -1)
+    throw new ProductError(
+      `Image ${imagePath} not found for product id ${pid}`,
+    );
+  product.images.splice(imageIndex, 1);
+  await product.save();
+  return product;
+}
+
 module.exports = {
   addProduct,
   deleteProduct,
@@ -163,4 +185,6 @@ module.exports = {
   getProductByCode,
   getCategories,
   updateProduct,
+  uploadProductImage,
+  deleteProductImage,
 };

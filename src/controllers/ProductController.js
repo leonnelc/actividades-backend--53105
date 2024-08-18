@@ -3,6 +3,7 @@ const ProductError = require("../services/errors/api/ProductError");
 const ProductDTO = require("../dtos/ProductDTO");
 const PaginatedProductDTO = require("../dtos/PaginatedProductDTO");
 const MailService = require("../services/MailService");
+const fs = require("fs");
 const ErrorHandler = require("../middleware/ErrorHandler");
 const { sendSuccess, buildQueryString } = require("./ControllerUtils");
 const { checkRoles } = require("./AuthController");
@@ -252,6 +253,40 @@ async function add(req, res, next) {
   }
 }
 
+async function uploadProductImage(req, res, next) {
+  let file;
+  try {
+    const { pid } = req.params;
+    file = req.file;
+    if (!file) throw new ProductError(`No file specified`);
+    const publicPath = file.path.replace(`${process.cwd()}/src/public`, "");
+    const result = await ProductService.uploadProductImage(pid, publicPath);
+    sendSuccess(res, { images: result });
+  } catch (error) {
+    if (file?.path) fs.unlinkSync(file.path);
+    next(error);
+  }
+}
+
+async function deleteProductImage(req, res, next) {
+  try {
+    const { pid, image } = req.params;
+    await ProductService.deleteProductImage(pid, `/images/products/${pid}/${image}`);
+    fs.unlinkSync(`${process.cwd()}/src/public/images/products/${pid}/${image}`);
+    sendSuccess(res, { message: `Image deleted succesfully` });
+  } catch (error) {
+    next(error);
+  }
+}
+
+async function isProductOwnerOrAdmin(req, res, next) {
+  const { pid } = req.params;
+  const product = new ProductDTO(await ProductService.getProductById(pid));
+  if (product.owner == req?.user?.id || req?.user?.role == "admin")
+    return next();
+  throw new ProductError(`Not Authorized`, { name: "NotAuthorized" });
+}
+
 module.exports = {
   socketHandler,
   getProductsPaginated,
@@ -260,4 +295,7 @@ module.exports = {
   update,
   deleteProduct,
   add,
+  uploadProductImage,
+  deleteProductImage,
+  isProductOwnerOrAdmin,
 };

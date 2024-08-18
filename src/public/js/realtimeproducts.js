@@ -32,7 +32,7 @@ document.addEventListener("DOMContentLoaded", () => {
         title: document.getElementById("formTitle").value,
         description: document.getElementById("formDescription").value,
         price: parseFloat(document.getElementById("formPrice").value),
-        thumbnails: [document.getElementById("formThumbnails").value],
+        thumbnail: document.getElementById("formThumbnail").value,
         code: document.getElementById("formCode").value,
         stock: parseInt(document.getElementById("formStock").value),
         category: document.getElementById("formCategory").value,
@@ -53,7 +53,7 @@ document.addEventListener("DOMContentLoaded", () => {
         title: document.getElementById("updateFormTitle").value,
         description: document.getElementById("updateFormDescription").value,
         price: parseFloat(document.getElementById("updateFormPrice").value),
-        thumbnails: [document.getElementById("updateFormThumbnails").value],
+        thumbnail: document.getElementById("updateFormThumbnail").value,
         stock: parseInt(document.getElementById("updateFormStock").value),
         category: document.getElementById("updateFormCategory").value,
         status: document.getElementById("updateFormStatus").checked,
@@ -70,7 +70,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("updateFormDescription").value =
       product.description;
     document.getElementById("updateFormPrice").value = product.price;
-    document.getElementById("updateFormThumbnails").value = product.thumbnails;
+    document.getElementById("updateFormThumbnail").value = product.thumbnail;
     document.getElementById("updateFormStock").value = product.stock;
     document.getElementById("updateFormCategory").value = product.category;
     document.getElementById("updateFormStatus").checked = product.status;
@@ -111,10 +111,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return addProductCard(product);
     }
 
-    const imageUrl =
-      product.thumbnails && product.thumbnails.length > 0
-        ? product.thumbnails[0]
-        : "";
+    const imageUrl = product.thumbnail ?? "";
     const imageHtml = imageUrl
       ? `<img src="${imageUrl}" class="card-img-top img-fluid object-fit-cover" alt="${product.title}">`
       : "";
@@ -159,10 +156,7 @@ document.addEventListener("DOMContentLoaded", () => {
     );
     card.id = product.id;
 
-    const imageUrl =
-      product.thumbnails && product.thumbnails.length > 0
-        ? product.thumbnails[0]
-        : "";
+    const imageUrl = product.thumbnail ?? "";
     const imageHtml = imageUrl
       ? `<img src="${imageUrl}" class="card-img-top" alt="${product.title}">`
       : "";

@@ -6,7 +6,8 @@ class ProductDTO {
     this.category = product.category;
     this.price = product.price;
     this.stock = product.stock;
-    this.thumbnails = product.thumbnails;
+    this.images = product.images;
+    this.thumbnail = product.thumbnail;
     this.status = product.status;
     this.code = product.code;
     this.owner = product.owner == null ? undefined : product.owner.toString();
