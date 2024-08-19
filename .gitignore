@@ -3,3 +3,4 @@ errors.log
 data
 src/public/profiles
 src/public/products
+.env
