@@ -6,12 +6,11 @@ const config = dotenv.config({
   path: `./.env.${mode}`,
 });
 if (config.error) {
-  logger.fatal(
-    `${new Date().toUTCString()} | Error loading environment variables, reason:\n${
+  logger.error(
+    `${new Date().toUTCString()} | Error loading environment variables from .env.${mode}, reason: ${
       config.error
-    }`
+    }\nIf you've set environment variables without .env files, you can ignore this message.`
   );
-  process.exit(1);
 }
 const configObject = {
   PORT: parseInt(process.env.PORT),
