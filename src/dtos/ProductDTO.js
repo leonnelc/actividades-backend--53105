@@ -6,7 +6,7 @@ class ProductDTO {
     this.category = product.category;
     this.price = product.price;
     this.stock = product.stock;
-    this.images = product.images;
+    this.images = product.images ?? [];
     this.thumbnail = product.thumbnail;
     this.status = product.status;
     this.code = product.code;

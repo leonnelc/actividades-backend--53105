@@ -25,6 +25,24 @@ document.addEventListener("DOMContentLoaded", () => {
   document
     .getElementById("submitUpdateProduct")
     .addEventListener("click", handleUpdateProduct);
+  document
+    .getElementById("imageUploadBtn")
+    .addEventListener("click", async () => {
+      const imageInput = document.getElementById("updateFormImage");
+      const productId = document.getElementById("submitUpdateProduct").dataset
+        .id;
+      if (imageInput.files.length < 1) return;
+      const formData = new FormData();
+      formData.append("productImage", imageInput.files[0]);
+      imageInput.value = "";
+      const response = await fetch(`/api/products/${productId}/images`, {
+        method: "POST",
+        body: formData,
+      });
+      if (!response.ok) return;
+      const result = await response.json();
+      populateUpdateProductModal(result.product);
+    });
 
   function handleAddProduct() {
     if (addProductForm.checkValidity()) {
@@ -75,6 +93,38 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("updateFormCategory").value = product.category;
     document.getElementById("updateFormStatus").checked = product.status;
     document.getElementById("submitUpdateProduct").dataset.id = product.id;
+    const modalImages = document.getElementById("updateModalImages");
+    modalImages.innerHTML = "";
+    if (!product.images) product.images = [];
+    for (let image of product.images) {
+      const imageElement = document.createElement("li");
+      imageElement.className =
+        "list-group-item d-flex justify-content-between align-items-center text-break text-wrap";
+      imageElement.textContent = image;
+      const buttonGroup = document.createElement("div");
+      buttonGroup.className = "btn-group";
+      const openBtn = document.createElement("a");
+      openBtn.href = image;
+      openBtn.target = "_blank";
+      openBtn.classList = "btn text-primary";
+      openBtn.title = "Open image in a new tab";
+      openBtn.innerHTML = `<i class="bi bi-box-arrow-up-right"></i>`;
+      buttonGroup.appendChild(openBtn);
+      const deleteBtn = document.createElement("button");
+      deleteBtn.classList = "btn text-danger";
+      deleteBtn.title = "Delete image";
+      deleteBtn.innerHTML = `<i class="bi bi-file-earmark-x"></i>`;
+      deleteBtn.addEventListener("click", async () => {
+        const response = await fetch(
+          `/api/products/${product.id}/images/${image.split("/").pop()}`,
+          { method: "DELETE" },
+        );
+        if (response.ok) imageElement.remove();
+      });
+      buttonGroup.appendChild(deleteBtn);
+      imageElement.appendChild(buttonGroup);
+      modalImages.appendChild(imageElement);
+    }
   }
 
   function deleteProduct(id) {
@@ -106,42 +156,21 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!ownsProduct(product)) {
       return;
     }
-    const card = document.getElementById(product.id);
-    if (!card) {
+    const oldProductCard = document.getElementById(product.id);
+    if (!oldProductCard) {
       return addProductCard(product);
     }
-
-    const imageUrl = product.thumbnail ?? "";
-    const imageHtml = imageUrl
-      ? `<img src="${imageUrl}" class="card-img-top img-fluid object-fit-cover" alt="${product.title}">`
-      : "";
-
-    card.innerHTML = `
-    <div class="card h-100 animation-lift-shadowless border-0 bg-dark-subtle">
-      ${imageHtml}
-      <div class="card-body d-flex flex-column">
-        <h5 class="card-title">${product.title}</h5>
-        <p class="card-text flex-grow-1">${product.description}</p>
-        <p class="card-text"><strong>Price:</strong> $${product.price}</p>
-        <p class="card-text"><strong>Stock:</strong> ${product.stock}</p>
-        <p class="card-text"><small class="text-muted">Owner ID: ${product.owner ?? "admin"}</small></p>
-        <button class="btn btn-primary mt-auto mb-2 update-btn" data-id="${product.id}" data-bs-toggle="modal" data-bs-target="#updateProductModal">Update</button>
-        <button class="btn btn-danger mt-auto delete-btn" data-id="${product.id}">Delete</button>
-      </div>
-    </div>
-  `;
-
-    card.querySelector(".delete-btn").addEventListener("click", () => {
-      deleteProduct(product.id);
-    });
-
-    card.querySelector(".update-btn").addEventListener("click", () => {
-      populateUpdateProductModal(product);
-    });
+    const newProductCard = createProductCard(product);
+    oldProductCard.replaceWith(newProductCard);
   }
 
   function addProductCard(product) {
     if (!ownsProduct(product)) return;
+    const productCard = createProductCard(product);
+    productContainer.appendChild(productCard);
+  }
+
+  function createProductCard(product) {
     const card = document.createElement("div");
     card.classList.add(
       "col",
@@ -183,8 +212,7 @@ document.addEventListener("DOMContentLoaded", () => {
     card.querySelector(".update-btn").addEventListener("click", () => {
       populateUpdateProductModal(product);
     });
-
-    productContainer.appendChild(card);
+    return card;
   }
 
   socket.on("rtproducts:productList", (products) => {

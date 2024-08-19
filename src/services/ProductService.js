@@ -157,7 +157,7 @@ async function uploadProductImage(pid, image) {
   if (product.images.includes(image)) return product.images;
   product.images.push(image);
   await product.save();
-  return product.images;
+  return product;
 }
 
 async function deleteProductImage(pid, imagePath) {

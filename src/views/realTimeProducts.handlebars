@@ -33,7 +33,7 @@
             <input id="formPrice" class="form-control" placeholder="Price" type="number" step="any" required>
           </div>
           <div class="mb-3">
-            <input id="formThumbnail" class="form-control" placeholder="Thumbnail URL">
+            <input id="formThumbnail" class="form-control" placeholder="Thumbnail URL (optional)">
           </div>
           <div class="mb-3">
             <input id="formCode" class="form-control" placeholder="Code" required>
@@ -78,7 +78,7 @@
             <input id="updateFormPrice" class="form-control" placeholder="Price" type="number" step="any">
           </div>
           <div class="mb-3">
-            <input id="updateFormThumbnail" class="form-control" placeholder="Thumbnail URL">
+            <input id="updateFormThumbnail" class="form-control" placeholder="Thumbnail URL (optional)">
           </div>
           <div class="mb-3">
             <input id="updateFormStock" class="form-control" placeholder="Stock" type="number">
@@ -91,6 +91,20 @@
             <label class="form-check-label" for="updateFormStatus">Status</label>
           </div>
         </form>
+        <button class="btn btn-primary mt-2 mb-1 dropdown-toggle" data-bs-toggle="collapse" data-bs-target="#imagesCollapse">Images</button>
+        <div class="collapse" id="imagesCollapse">
+        <ul class="list-group" id="updateModalImages">
+        </ul>
+          <div class="mb-3">
+            <div class="row">
+            <label for="updateFormImage">Upload an image (max 4 images per product)</label>
+            <input id="updateFormImage" type="file" class="form-control" name="productImage">
+            </div>
+            <div class="row">
+            <button class="btn btn-primary" id="imageUploadBtn">Upload</button>
+            </div>
+          </div>
+        </div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>

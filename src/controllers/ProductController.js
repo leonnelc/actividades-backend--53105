@@ -146,7 +146,6 @@ async function update(req, res, next) {
 
     const product = await ProductService.updateProduct(pid, req.body);
     res.locals.send = {
-      status: "success",
       message: "Product updated succesfully",
     };
     res.locals.product = new ProductDTO(product);
@@ -227,7 +226,6 @@ async function deleteProduct(req, res, next) {
     const product = await ProductService.deleteProduct(pid);
     if (req.user.role != "admin") sendDeleteMail(req.user, product);
     res.locals.send = {
-      status: "success",
       message: "Product deleted succesfully",
     };
     res.locals.product = pid;
@@ -243,7 +241,6 @@ async function add(req, res, next) {
       await ProductService.addProduct({ ...req.body, owner }),
     );
     res.locals.send = {
-      status: "success",
       product: result,
     };
     res.locals.product = result;
@@ -260,8 +257,13 @@ async function uploadProductImage(req, res, next) {
     file = req.file;
     if (!file) throw new ProductError(`No file specified`);
     const publicPath = file.path.replace(`${process.cwd()}/src/public`, "");
-    const result = await ProductService.uploadProductImage(pid, publicPath);
-    sendSuccess(res, { images: result });
+    const product = new ProductDTO(
+      await ProductService.uploadProductImage(pid, publicPath),
+    );
+    req.method = "PUT";
+    res.locals.send = { product };
+    res.locals.product = product;
+    next();
   } catch (error) {
     if (file?.path) fs.unlinkSync(file.path);
     next(error);
@@ -271,9 +273,17 @@ async function uploadProductImage(req, res, next) {
 async function deleteProductImage(req, res, next) {
   try {
     const { pid, image } = req.params;
-    await ProductService.deleteProductImage(pid, `/images/products/${pid}/${image}`);
-    fs.unlinkSync(`${process.cwd()}/src/public/images/products/${pid}/${image}`);
-    sendSuccess(res, { message: `Image deleted succesfully` });
+    const product = await ProductService.deleteProductImage(
+      pid,
+      `/images/products/${pid}/${image}`,
+    );
+    fs.unlinkSync(
+      `${process.cwd()}/src/public/images/products/${pid}/${image}`,
+    );
+    req.method = "PUT";
+    res.locals.send = { message: `Image deleted succesfully`, product };
+    res.locals.product = new ProductDTO(product);
+    next();
   } catch (error) {
     next(error);
   }
