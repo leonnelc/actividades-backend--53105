@@ -17,8 +17,12 @@ const productsSchema = new mongo.Schema({
   category: { type: String, required: true, index: true },
   price: numRequired,
   stock: numRequired,
-  images: {type: [String], default: []},
-  thumbnail: { type: String, default: "/images/404-not-found.jpg", required: true },
+  images: { type: [String], default: [] },
+  thumbnail: {
+    type: String,
+    default: "/images/404-not-found.jpg",
+    required: false,
+  },
   status: { type: Boolean, default: true, required: true, index: true },
   code: {
     type: String,
